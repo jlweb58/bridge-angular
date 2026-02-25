@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": "50f5ab23-2699-4f75-8056-a3568e4fe77b"
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -62,7 +63,10 @@
               "buildTarget": "bridge-angular:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "port": 4201
+          },
         },
         "test": {
           "builder": "@angular/build:unit-test"
