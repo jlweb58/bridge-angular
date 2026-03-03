@@ -9,7 +9,7 @@ import {catchError, Observable, throwError} from 'rxjs';
 })
 export class SingleDummyService {
 
-  private serviceUrl = environment.baseUrl + '/single-dummy/';
+  private serviceUrl = environment.baseUrl + '/single-dummy';
 
   constructor(private http: HttpClient) { }
 
