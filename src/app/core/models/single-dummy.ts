@@ -26,3 +26,16 @@ export interface SingleDummyAnalyzeRequest {
   /** Optional; if omitted or null server generates one */
   seed?: number | null;
 }
+
+export interface SingleDummyAnalyzeResponse {
+  samples: number;
+  successes: number;
+  successProbability: number; // Java double -> TS number
+  confidence95: ConfidenceInterval95;
+  tricksHistogram: Record<number, number>; // Map<Integer,Integer> serialized as an object with string keys in JSON
+}
+
+export interface ConfidenceInterval95 {
+  low: number;
+  high: number;
+}
