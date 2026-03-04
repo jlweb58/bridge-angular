@@ -23,7 +23,7 @@
   }
 
   @if (dealReady()) {
-    <section class="panel">
+    <section class="panel-deal">
       <h2>2) Deal (N/E/S/W)</h2>
 
       <div class="table">
@@ -31,14 +31,24 @@
 
         <div class="cell north">
           <div class="seat">NORTH</div>
-          <pre class="hand">{{ northHandText() }}</pre>
+          <div class="hand">
+            <div class="hand-line spade"><span class="suit">♠</span><span class="ranks">{{ northHand().S }}</span></div>
+            <div class="hand-line heart"><span class="suit">♥</span><span class="ranks">{{ northHand().H }}</span></div>
+            <div class="hand-line diamond"><span class="suit">♦</span><span class="ranks">{{ northHand().D }}</span></div>
+            <div class="hand-line club"><span class="suit">♣</span><span class="ranks">{{ northHand().C }}</span></div>
+          </div>
         </div>
 
         <div class="cell corner"></div>
 
         <div class="cell west">
           <div class="seat">WEST</div>
-          <pre class="hand">{{ westHandText() }}</pre>
+          <div class="hand">
+            <div class="hand-line spade"><span class="suit">♠</span><span class="ranks">{{ westHand().S }}</span></div>
+            <div class="hand-line heart"><span class="suit">♥</span><span class="ranks">{{ westHand().H }}</span></div>
+            <div class="hand-line diamond"><span class="suit">♦</span><span class="ranks">{{ westHand().D }}</span></div>
+            <div class="hand-line club"><span class="suit">♣</span><span class="ranks">{{ westHand().C }}</span></div>
+          </div>
         </div>
 
         <div class="cell center">
@@ -49,20 +59,29 @@
               Dealer: (not provided)
             }
             <br />
-            First hand in Deal tag: {{ deal()!.first }}
           </div>
         </div>
 
         <div class="cell east">
           <div class="seat">EAST</div>
-          <pre class="hand">{{ eastHandText() }}</pre>
+          <div class="hand">
+            <div class="hand-line spade"><span class="suit">♠</span><span class="ranks">{{ eastHand().S }}</span></div>
+            <div class="hand-line heart"><span class="suit">♥</span><span class="ranks">{{ eastHand().H }}</span></div>
+            <div class="hand-line diamond"><span class="suit">♦</span><span class="ranks">{{ eastHand().D }}</span></div>
+            <div class="hand-line club"><span class="suit">♣</span><span class="ranks">{{ eastHand().C }}</span></div>
+          </div>
         </div>
 
         <div class="cell corner"></div>
 
         <div class="cell south">
           <div class="seat">SOUTH</div>
-          <pre class="hand">{{ southHandText() }}</pre>
+          <div class="hand">
+            <div class="hand-line spade"><span class="suit">♠</span><span class="ranks">{{ southHand().S }}</span></div>
+            <div class="hand-line heart"><span class="suit">♥</span><span class="ranks">{{ southHand().H }}</span></div>
+            <div class="hand-line diamond"><span class="suit">♦</span><span class="ranks">{{ southHand().D }}</span></div>
+            <div class="hand-line club"><span class="suit">♣</span><span class="ranks">{{ southHand().C }}</span></div>
+          </div>
         </div>
 
         <div class="cell corner"></div>
@@ -75,34 +94,34 @@
       <div class="form">
         <label>
           <span>Strain</span>
-          <select [value]="denomination()" (change)="denomination.set(($any($event.target).value))">
+          <select (change)="setDenominationFromSelect($any($event.target).value)">
             @for (d of denominations; track d) {
-              <option [value]="d">{{ d }}</option>
+              <option [value]="d" [selected]="d === denomination()">{{ d }}</option>
             }
           </select>
         </label>
 
         <label>
           <span>Level</span>
-          <select [value]="level()" (change)="setLevelFromSelect($any($event.target).value)">
+          <select (change)="setLevelFromSelect($any($event.target).value)">
             @for (l of levels; track l) {
-              <option [value]="l">{{ l }}</option>
+              <option [value]="l" [selected]="l === level()">{{ l }}</option>
             }
           </select>
         </label>
 
         <label>
           <span>Declarer</span>
-          <select [value]="declarer()" (change)="declarer.set(($any($event.target).value))">
+          <select (change)="setDeclarerFromSelect($any($event.target).value)">
             @for (p of players; track p) {
-              <option [value]="p">{{ playerLabel[p] }}</option>
+              <option [value]="p" [selected]="p === declarer()">{{ playerLabel[p] }}</option>
             }
           </select>
         </label>
 
         <label>
           <span>Dummy</span>
-          <input type="text" [value]="playerLabel[dummy()]" disabled />
+          <div class="readonly-control">{{ dummyLabel() }}</div>
           <div class="muted small">Dummy is always declarer’s partner.</div>
         </label>
 
@@ -113,7 +132,7 @@
             min="1"
             step="1"
             [value]="samples()"
-            (input)="samples.set(Number($any($event.target).value))"
+            (input)="setSamplesFromInput($any($event.target).value)"
           />
         </label>
       </div>
@@ -123,13 +142,6 @@
           {{ loading() ? 'Running…' : 'Analyze' }}
         </button>
       </div>
-    </section>
-  }
-
-  @if (request()) {
-    <section class="panel">
-      <h2>Request</h2>
-      <pre>{{ requestJson() }}</pre>
     </section>
   }
 

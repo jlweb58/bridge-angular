@@ -19,6 +19,9 @@ const PARTNER: Record<Player, Player> = {
   WEST: 'EAST',
 };
 
+type SuitLines = { S: string; H: string; D: string; C: string };
+
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.html',
@@ -41,7 +44,8 @@ export class App {
   protected readonly denomination = signal<Denomination>('SPADES');
   protected readonly level = signal<Level>(4);
   protected readonly declarer = signal<Player>('SOUTH');
-  protected readonly dummy = computed<Player>(() => PARTNER[this.declarer()]);
+  protected readonly dummyPlayer = computed<Player>(() => PARTNER[this.declarer()]);
+  protected readonly dummyLabel = computed(() => this.playerLabel[this.dummyPlayer()]);
   protected readonly samples = signal<number>(500);
 
   // --- Request/Response state ---
@@ -61,10 +65,10 @@ export class App {
 
   protected readonly dealReady = computed(() => !!this.deal());
 
-  protected readonly northHandText = computed(() => this.handToPrettyText('NORTH'));
-  protected readonly eastHandText = computed(() => this.handToPrettyText('EAST'));
-  protected readonly southHandText = computed(() => this.handToPrettyText('SOUTH'));
-  protected readonly westHandText = computed(() => this.handToPrettyText('WEST'));
+  protected readonly northHand = computed(() => this.handToSuitLines('NORTH'));
+  protected readonly eastHand = computed(() => this.handToSuitLines('EAST'));
+  protected readonly southHand = computed(() => this.handToSuitLines('SOUTH'));
+  protected readonly westHand = computed(() => this.handToSuitLines('WEST'));
 
   protected onPbnFileSelected(ev: Event): void {
     const input = ev.target as HTMLInputElement;
@@ -102,6 +106,47 @@ export class App {
     reader.readAsText(file);
   }
 
+  protected setDeclarerFromSelect(value: string): void {
+    if (!PLAYERS.includes(value as Player)) {
+      this.error.set(`Invalid declarer "${value}". Must be one of ${PLAYERS.join(', ')}.`);
+      return;
+    }
+    this.declarer.set(value as Player);
+  }
+
+  protected setDenominationFromSelect(value: string): void {
+    if (!DENOMINATIONS.includes(value as Denomination)) {
+      this.error.set(`Invalid strain "${value}". Must be one of ${DENOMINATIONS.join(', ')}.`);
+      return;
+    }
+    this.denomination.set(value as Denomination);
+  }
+
+  protected setSamplesFromInput(value: string): void {
+    // allow empty while typing -> treat as NaN and show error but don't crash
+    const n = Number(value);
+
+    if (!Number.isFinite(n) || !Number.isInteger(n)) {
+      this.error.set('Samples must be an integer.');
+      return;
+    }
+    if (n <= 0) {
+      this.error.set('Samples must be a positive number.');
+      return;
+    }
+
+    // optional safety cap to prevent accidental "50000000"
+    const capped = Math.min(n, 100_000);
+    if (capped !== n) {
+      this.error.set('Samples capped at 100000 to protect the server.');
+    } else if (this.error()?.startsWith('Samples')) {
+      // clear only our samples-related errors; keep other errors
+      this.error.set(null);
+    }
+
+    this.samples.set(capped);
+  }
+
   protected setLevelFromSelect(value: string): void {
     const n = Number(value);
     if (!LEVELS.includes(n as Level)) {
@@ -128,7 +173,7 @@ export class App {
     }
 
     const declarer = this.declarer();
-    const dummy = PARTNER[declarer];
+    const dummy = this.dummyPlayer();
 
     const handsForRequest: Partial<Record<Player, CardCode[]>> = {
       // include all four hands (works even if server only uses declarer/dummy)
@@ -146,8 +191,7 @@ export class App {
         denomination: this.denomination(),
       },
       hands: handsForRequest,
-      samples,
-      seed: 12345,
+      samples
     };
 
     this.request.set(request);
@@ -173,9 +217,9 @@ export class App {
     this.loading.set(false);
   }
 
-  private handToPrettyText(player: Player): string {
+  private handToSuitLines(player: Player): SuitLines {
     const deal = this.deal();
-    if (!deal) return '';
+    if (!deal) return { S: '-', H: '-', D: '-', C: '-' };
 
     const cards = deal.hands[player] ?? [];
     const bySuit: Record<'S' | 'H' | 'D' | 'C', string[]> = { S: [], H: [], D: [], C: [] };
@@ -190,13 +234,14 @@ export class App {
     const sortRanks = (ranks: string[]) =>
       [...ranks].sort((a, b) => rankOrder.indexOf(a) - rankOrder.indexOf(b)).join('');
 
-    const s = sortRanks(bySuit.S) || '-';
-    const h = sortRanks(bySuit.H) || '-';
-    const d = sortRanks(bySuit.D) || '-';
-    const c = sortRanks(bySuit.C) || '-';
-
-    return `S: ${s}\nH: ${h}\nD: ${d}\nC: ${c}`;
+    return {
+      S: sortRanks(bySuit.S) || '-',
+      H: sortRanks(bySuit.H) || '-',
+      D: sortRanks(bySuit.D) || '-',
+      C: sortRanks(bySuit.C) || '-',
+    };
   }
 
-  protected readonly Number = Number;
+
+
 }

@@ -21,6 +21,43 @@
   background: #fff;
 }
 
+.panel-deal {
+  margin: 16px 0;
+  padding: 12px 14px;
+  border: 1px solid #1f3b1f;
+  border-radius: 10px;
+  background: #336e34;
+  color: #ecd25f;      /* readable on green */
+}
+
+.panel-deal h2 {
+  margin-top: 0;
+  color: #ecfdf5;
+}
+
+.panel-deal .muted,
+.panel-deal .small {
+  color: rgba(236, 253, 245, 0.85);
+}
+
+/* Make the “cards” feel like overlays on the table */
+.panel-deal .cell {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.92);
+  color: #111827;
+}
+
+/* Center cell should also sit nicely on the baize */
+.panel-deal .center {
+  background: rgba(255, 255, 255, 0.88);
+}
+
+/* Optional: corners remain invisible */
+.panel-deal .corner {
+  background: transparent;
+  border: none;
+}
+
 .row {
   display: flex;
   gap: 12px;
@@ -78,14 +115,25 @@ pre {
 label {
   display: grid;
   gap: 6px;
+  align-content: start;
 }
 
 select,
 input[type='text'],
-input[type='number'] {
+input[type='number'] ,
+.readonly-control {
+  height: 38px;
   padding: 8px 10px;
   border-radius: 8px;
   border: 1px solid #d1d5db;
+  box-sizing: border-box;
+}
+
+.readonly-control {
+  background: #f9fafb;
+  color: #111827;
+  display: flex;
+  align-items: center;
 }
 
 .table {
@@ -94,6 +142,7 @@ input[type='number'] {
   grid-template-rows: auto auto auto;
   gap: 10px;
   align-items: stretch;
+
 }
 
 .cell {
@@ -120,6 +169,34 @@ input[type='number'] {
 }
 
 .hand {
-  margin: 0;
-  white-space: pre-wrap;
+  display: grid;
+  gap: 2px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
+
+.hand-line {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  align-items: baseline;
+  line-height: 1.25;
+  color: #111827; /* ranks stay black */
+}
+
+.suit {
+  font-weight: 700;
+}
+
+.ranks {
+  letter-spacing: 0.5px;
+}
+
+.hand-line.heart .suit,
+.hand-line.diamond .suit {
+  color: #b91c1c; /* red */
+}
+
+.hand-line.spade .suit,
+.hand-line.club .suit {
+  color: #111827; /* near-black */
+}
+
