@@ -9,7 +9,7 @@
     <h2>1) Upload PBN</h2>
 
     <div class="row">
-      <input type="file" accept=".pbn,text/plain" (change)="onPbnFileSelected($event)" />
+      <input type="file" accept=".pbn,text/plain" (change)="onPbnFileSelected($event)" matTooltip="Select a PBN file to analyze"/>
       @if (pbnFileName()) {
         <span class="muted">Selected: <strong>{{ pbnFileName() }}</strong></span>
       }
@@ -139,28 +139,71 @@
 
       <div class="actions">
         <button type="button" (click)="runSingleDummy()" [disabled]="loading()">
-          {{ loading() ? 'Running…' : 'Analyze' }}
+          @if (loading()) {
+            <span class="spinner" aria-hidden="true"></span>
+          }
+          <span>{{ loading() ? 'Running…' : 'Analyze' }}</span>
         </button>
+        @if (loading()) {
+          <div class="muted small loading-hint" role="status" aria-live="polite">
+            Analyzing… this can take 5–30 seconds.
+          </div>
+        }
       </div>
     </section>
   }
 
   @if (response()) {
-    <section class="panel">
-      <h2>Response</h2>
+    <section class="panel results" id="results">
+      <h2>Results</h2>
 
-      <div class="summary">
-        <div><strong>Samples:</strong> {{ response()!.samples }}</div>
-        <div><strong>Successes:</strong> {{ response()!.successes }}</div>
-        <div><strong>Success probability:</strong> {{ response()!.successProbability }}</div>
-        <div>
-          <strong>95% CI:</strong>
-          {{ response()!.confidence95.low }} – {{ response()!.confidence95.high }}
+      <div class="summary summary-2col">
+        <div class="summary-item">
+          <div class="summary-label" matTooltip="Number of samples used in the analysis">Samples</div>
+          <div class="summary-value">{{ response()!.samples }}</div>
+        </div>
+
+        <div class="summary-item">
+          <div class="summary-label" matTooltip="Number of times the contract was successful">Successes</div>
+          <div class="summary-value">{{ response()!.successes }}</div>
+        </div>
+
+        <div class="summary-item">
+          <div class="summary-label" matTooltip="Probability of success based on the analysis">Success probability</div>
+          <div class="summary-value">{{ successProbabilityPct() }}</div>
+        </div>
+
+        <div class="summary-item">
+          <div class="summary-label" matTooltip="Range within which the true success probability is expected to lie with 95% confidence">95% Confidence Interval</div>
+          <div class="summary-value">{{ confidence95Text() }}</div>
         </div>
       </div>
 
-      <h3>Raw JSON</h3>
-      <pre>{{ responseJson() }}</pre>
+      <h3>Tricks histogram</h3>
+
+      @if (histogramRows().length === 0) {
+        <div class="muted small">No histogram data returned.</div>
+      } @else {
+        <table class="hist-table">
+          <thead>
+          <tr>
+            <th scope="col" matTooltip="How often a given number of tricks were made">Tricks</th>
+            <th scope="col" class="num">Count</th>
+            <th scope="col" class="num">Percent</th>
+          </tr>
+          </thead>
+          <tbody>
+            @for (row of histogramRows(); track row.tricks) {
+              <tr>
+                <td>{{ row.tricks }}</td>
+                <td class="num">{{ row.count }}</td>
+                <td class="num">{{ (row.pct * 100).toFixed(1) }}%</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+
     </section>
   }
 </div>

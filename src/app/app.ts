@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import {Component, computed, DOCUMENT, inject, signal} from '@angular/core';
 import { SingleDummyService } from './core/services/single-dummy.service';
 
 import type { Deal } from './core/models/deal';
@@ -11,6 +11,7 @@ import { DENOMINATIONS, LEVELS } from './core/models/contracts';
 import type { CardCode } from './core/models/cards';
 import type { SingleDummyAnalyzeRequest, SingleDummyAnalyzeResponse } from './core/models/single-dummy';
 import { parsePbnToDeal } from './core/models/pbn-parser';
+import {MAT_TOOLTIP_DEFAULT_OPTIONS, MatTooltip, MatTooltipDefaultOptions} from '@angular/material/tooltip';
 
 const PARTNER: Record<Player, Player> = {
   NORTH: 'SOUTH',
@@ -21,14 +22,26 @@ const PARTNER: Record<Player, Player> = {
 
 type SuitLines = { S: string; H: string; D: string; C: string };
 
+/** Custom options the configure the tooltip's default show/hide delays. */
+export const myCustomTooltipDefaults: MatTooltipDefaultOptions = {
+  showDelay: 500,
+  hideDelay: 200,
+  touchendHideDelay: 1000,
+};
+
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.html',
-  styleUrl: './app.css',
+  styleUrl: './app.scss',
+  providers: [{provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: myCustomTooltipDefaults}],
+  imports: [
+    MatTooltip
+  ]
 })
 export class App {
   private readonly singleDummyService = inject(SingleDummyService);
+  private readonly document = inject(DOCUMENT);
 
   // --- PBN / Deal ---
   protected readonly pbnFileName = signal<string | null>(null);
@@ -69,6 +82,46 @@ export class App {
   protected readonly eastHand = computed(() => this.handToSuitLines('EAST'));
   protected readonly southHand = computed(() => this.handToSuitLines('SOUTH'));
   protected readonly westHand = computed(() => this.handToSuitLines('WEST'));
+
+  protected readonly confidence95Text = computed(() => {
+    const r = this.response();
+    if (!r) return '';
+    return `${this.formatDecimal(r.confidence95.low)}–${this.formatDecimal(r.confidence95.high)}`;
+  });
+
+  protected readonly histogramRows = computed(() => {
+    const r = this.response();
+    if (!r) return [] as Array<{ tricks: number; count: number; pct: number }>;
+
+    const total = r.samples || 0;
+
+    return Object.entries(r.tricksHistogram ?? {})
+      .map(([tricks, count]) => ({
+        tricks: Number(tricks),
+        count: Number(count),
+        pct: total > 0 ? Number(count) / total : 0,
+      }))
+      .filter((x) => Number.isFinite(x.tricks) && Number.isFinite(x.count))
+      .sort((a, b) => a.tricks - b.tricks);
+  });
+
+  protected readonly successProbabilityPct = computed(() => {
+    const r = this.response();
+    if (!r) return '';
+    return `${this.formatPercent(r.successProbability)}`;
+  });
+
+  // ... existing code ...
+
+  private formatDecimal(n: number, digits = 2): string {
+    if (!Number.isFinite(n)) return '-';
+    return n.toFixed(digits);
+  }
+
+  private formatPercent(p: number, digits = 1): string {
+    if (!Number.isFinite(p)) return '-';
+    return `${(p * 100).toFixed(digits)}%`;
+  }
 
   protected onPbnFileSelected(ev: Event): void {
     const input = ev.target as HTMLInputElement;
@@ -201,11 +254,15 @@ export class App {
       next: (resp) => {
         this.response.set(resp);
         this.loading.set(false);
+
+        // Wait for the template to render the @if(response()) block, then scroll.
+        setTimeout(() => this.scrollToResults(), 0);
       },
       error: (err: unknown) => {
         const message = err instanceof Error ? err.message : 'Request failed.';
         this.error.set(message);
         this.loading.set(false);
+
       },
     });
   }
@@ -215,6 +272,11 @@ export class App {
     this.request.set(null);
     this.response.set(null);
     this.loading.set(false);
+  }
+
+  private scrollToResults(): void {
+    const el = this.document.getElementById('results');
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   private handToSuitLines(player: Player): SuitLines {
