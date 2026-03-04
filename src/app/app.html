@@ -2,15 +2,19 @@
   <h1>Bridge Hand Analysis</h1>
 
   <p class="muted">
-    Upload PBN will come next. For now, this button sends a hard-coded Single Dummy request to the backend
-    and renders the response.
+    Upload a PBN file, review the 4 hands, pick a contract + declarer, then run single-dummy analysis.
   </p>
 
-  <div class="actions">
-    <button type="button" (click)="runSampleAnalysis()" [disabled]="loading()">
-      {{ loading() ? 'Running…' : 'Run sample single-dummy analysis' }}
-    </button>
-  </div>
+  <section class="panel">
+    <h2>1) Upload PBN</h2>
+
+    <div class="row">
+      <input type="file" accept=".pbn,text/plain" (change)="onPbnFileSelected($event)" />
+      @if (pbnFileName()) {
+        <span class="muted">Selected: <strong>{{ pbnFileName() }}</strong></span>
+      }
+    </div>
+  </section>
 
   @if (error()) {
     <div class="error">
@@ -18,25 +22,133 @@
     </div>
   }
 
+  @if (dealReady()) {
+    <section class="panel">
+      <h2>2) Deal (N/E/S/W)</h2>
+
+      <div class="table">
+        <div class="cell corner"></div>
+
+        <div class="cell north">
+          <div class="seat">NORTH</div>
+          <pre class="hand">{{ northHandText() }}</pre>
+        </div>
+
+        <div class="cell corner"></div>
+
+        <div class="cell west">
+          <div class="seat">WEST</div>
+          <pre class="hand">{{ westHandText() }}</pre>
+        </div>
+
+        <div class="cell center">
+          <div class="muted small">
+            @if (deal()!.dealer) {
+              Dealer: {{ deal()!.dealer }}
+            } @else {
+              Dealer: (not provided)
+            }
+            <br />
+            First hand in Deal tag: {{ deal()!.first }}
+          </div>
+        </div>
+
+        <div class="cell east">
+          <div class="seat">EAST</div>
+          <pre class="hand">{{ eastHandText() }}</pre>
+        </div>
+
+        <div class="cell corner"></div>
+
+        <div class="cell south">
+          <div class="seat">SOUTH</div>
+          <pre class="hand">{{ southHandText() }}</pre>
+        </div>
+
+        <div class="cell corner"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>3) Single Dummy Inputs</h2>
+
+      <div class="form">
+        <label>
+          <span>Strain</span>
+          <select [value]="denomination()" (change)="denomination.set(($any($event.target).value))">
+            @for (d of denominations; track d) {
+              <option [value]="d">{{ d }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          <span>Level</span>
+          <select [value]="level()" (change)="setLevelFromSelect($any($event.target).value)">
+            @for (l of levels; track l) {
+              <option [value]="l">{{ l }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          <span>Declarer</span>
+          <select [value]="declarer()" (change)="declarer.set(($any($event.target).value))">
+            @for (p of players; track p) {
+              <option [value]="p">{{ playerLabel[p] }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          <span>Dummy</span>
+          <input type="text" [value]="playerLabel[dummy()]" disabled />
+          <div class="muted small">Dummy is always declarer’s partner.</div>
+        </label>
+
+        <label>
+          <span>Samples</span>
+          <input
+            type="number"
+            min="1"
+            step="1"
+            [value]="samples()"
+            (input)="samples.set(Number($any($event.target).value))"
+          />
+        </label>
+      </div>
+
+      <div class="actions">
+        <button type="button" (click)="runSingleDummy()" [disabled]="loading()">
+          {{ loading() ? 'Running…' : 'Analyze' }}
+        </button>
+      </div>
+    </section>
+  }
+
   @if (request()) {
-    <h2>Request</h2>
-    <pre>{{ requestJson() }}</pre>
+    <section class="panel">
+      <h2>Request</h2>
+      <pre>{{ requestJson() }}</pre>
+    </section>
   }
 
   @if (response()) {
-    <h2>Response</h2>
+    <section class="panel">
+      <h2>Response</h2>
 
-    <div class="summary">
-      <div><strong>Samples:</strong> {{ response()!.samples }}</div>
-      <div><strong>Successes:</strong> {{ response()!.successes }}</div>
-      <div><strong>Success probability:</strong> {{ response()!.successProbability }}</div>
-      <div>
-        <strong>95% CI:</strong>
-        {{ response()!.confidence95.low }} – {{ response()!.confidence95.high }}
+      <div class="summary">
+        <div><strong>Samples:</strong> {{ response()!.samples }}</div>
+        <div><strong>Successes:</strong> {{ response()!.successes }}</div>
+        <div><strong>Success probability:</strong> {{ response()!.successProbability }}</div>
+        <div>
+          <strong>95% CI:</strong>
+          {{ response()!.confidence95.low }} – {{ response()!.confidence95.high }}
+        </div>
       </div>
-    </div>
 
-    <h3>Raw JSON</h3>
-    <pre>{{ responseJson() }}</pre>
+      <h3>Raw JSON</h3>
+      <pre>{{ responseJson() }}</pre>
+    </section>
   }
 </div>
