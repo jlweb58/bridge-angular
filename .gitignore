@@ -5,6 +5,7 @@
 /tmp
 /out-tsc
 /bazel-out
+bridge-angular.zip
 
 # Node
 /node_modules

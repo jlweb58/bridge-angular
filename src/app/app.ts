@@ -187,17 +187,18 @@ export class App {
       this.error.set('Samples must be a positive number.');
       return;
     }
-
-    // optional safety cap to prevent accidental "50000000"
-    const capped = Math.min(n, 100_000);
-    if (capped !== n) {
-      this.error.set('Samples capped at 100000 to protect the server.');
-    } else if (this.error()?.startsWith('Samples')) {
+    if (n > 2000) {
+      this.error.set('Samples must be 2000 or less.');
+      this.samples.set(2000);
+      return;
+    }
+    if (this.error()?.startsWith('Samples')) {
       // clear only our samples-related errors; keep other errors
       this.error.set(null);
     }
 
-    this.samples.set(capped);
+    this.samples.set(n);
+
   }
 
   protected setLevelFromSelect(value: string): void {

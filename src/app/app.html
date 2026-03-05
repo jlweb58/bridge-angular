@@ -130,7 +130,9 @@
           <input
             type="number"
             min="1"
+            max="2000"
             step="1"
+            matTooltip="Number of samples to use in the analysis. The higher the number, the more accurate, but it takes longer. It's capped at 2000"
             [value]="samples()"
             (input)="setSamplesFromInput($any($event.target).value)"
           />
