@@ -1,29 +1,22 @@
 <div class="page">
-  <header class="topbar" role="banner">
-    <div class="topbar-inner">
-      <a class="brand" href="#top">Bridge Hand Analysis</a>
+  <mat-toolbar class="topbar" role="banner">
+    <a mat-button class="brand" routerLink="/">Bridge Hand Analysis</a>
 
-      <nav class="menu" aria-label="Main menu">
-        <a class="menu-link" href="#analyzer">Analyzer</a>
-        <a class="menu-link" href="#contact">Contact</a>
-        <a class="menu-link" href="#legal-notice">Legal Notice</a>
-        <a class="menu-link" href="#privacy">Privacy</a>
-        <span class="menu-sep" aria-hidden="true">|</span>
-        <a class="menu-link disabled" href="javascript:void(0)" aria-disabled="true" title="Coming soon">TBD: Other areas</a>
-      </nav>
-    </div>
-  </header>
+    <span class="spacer"></span>
+
+    <nav class="menu" aria-label="Main menu">
+      <a mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">Analyzer</a>
+      <a mat-button routerLink="/contact" routerLinkActive="active-link">Contact</a>
+      <a mat-button routerLink="/legal-notice" routerLinkActive="active-link">Legal Notice</a>
+      <a mat-button routerLink="/privacy" routerLinkActive="active-link">Privacy</a>
+      <a mat-button disabled>Other areas (TBD)</a>
+    </nav>
+  </mat-toolbar>
 
   <router-outlet />
 
   <footer class="footer" role="contentinfo">
     <div class="footer-inner">
-      <div class="footer-links">
-        <a routerLink="/contact">Contact</a>
-        <a routerLink="/legal-notice">Legal Notice</a>
-        <a routerLink="/privacy">Privacy</a>
-      </div>
-
       <div class="footer-credits">
         Single-dummy analysis powered by the DDS library by Bo Haglund / Soren Hein:
         <a href="https://github.com/dds-bridge/dds/" target="_blank" rel="noopener noreferrer">github.com/dds-bridge/dds</a>
