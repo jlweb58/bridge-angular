@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <!-- Subtle “Material-ish” surface tint -->
+    <linearGradient id="surface" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f3f4f6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Card -->
+  <rect x="8" y="6" width="48" height="52" rx="10" fill="url(#surface)" stroke="#111827" stroke-width="2"/>
+
+  <!-- Corner rank -->
+  <text
+    x="14"
+    y="22"
+    font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial"
+    font-size="16"
+    font-weight="800"
+    fill="#111827"
+  >A</text>
+
+  <!-- Big spade (simple + readable at 16x16) -->
+  <path
+    d="M32 14
+       C24 22, 16 28, 16 36
+       C16 42.2, 20.7 47, 26.8 47
+       C29.5 47, 31.6 45.9, 32 45.4
+       C32.4 45.9, 34.5 47, 37.2 47
+       C43.3 47, 48 42.2, 48 36
+       C48 28, 40 22, 32 14
+       Z
+       M28 46
+       C26.6 51.2, 23.4 54.4, 20 56
+       L44 56
+       C40.6 54.4, 37.4 51.2, 36 46
+       Z"
+    fill="#111827"
+  />
+</svg>

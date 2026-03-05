@@ -4,8 +4,10 @@
   Upload a PBN file, review the 4 hands, pick a contract + declarer, then run single-dummy analysis.
 </p>
 
-<mat-card class="panel">
-  <mat-card-title>1) Upload PBN</mat-card-title>
+<mat-card class="panel-card">
+  <mat-card-header>
+    <mat-card-title>1) Upload PBN</mat-card-title>
+  </mat-card-header>
   <mat-card-content>
     <div class="row">
       <input
@@ -93,8 +95,10 @@
     </div>
   </section>
 
-  <mat-card class="panel">
-    <mat-card-title>3) Single Dummy Inputs</mat-card-title>
+  <mat-card class="panel-card">
+    <mat-card-header>
+      <mat-card-title>3) Single Dummy Inputs</mat-card-title>
+    </mat-card-header>
     <mat-card-content>
       <div class="form">
         <mat-form-field appearance="outline">
@@ -164,8 +168,10 @@
 }
 
 @if (response()) {
-  <mat-card class="panel results" id="results">
-    <mat-card-title>Results</mat-card-title>
+  <mat-card class="panel-card results" id="results">
+    <mat-card-header>
+      <mat-card-title>Results</mat-card-title>
+    </mat-card-header>
     <mat-card-content>
       <div class="summary summary-2col">
         <div class="summary-item">

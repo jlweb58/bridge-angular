@@ -13,7 +13,7 @@ import type { CardCode } from '../core/models/cards';
 import type { SingleDummyAnalyzeRequest, SingleDummyAnalyzeResponse } from '../core/models/single-dummy';
 import { parsePbnToDeal } from '../core/models/pbn-parser';
 import {MatButton} from '@angular/material/button';
-import {MatCard, MatCardContent, MatCardTitle} from '@angular/material/card';
+import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {MatFormField, MatHint, MatInput, MatLabel} from '@angular/material/input';
 import {MatOption, MatSelect} from '@angular/material/select';
@@ -32,7 +32,7 @@ type SuitLines = { S: string; H: string; D: string; C: string };
   standalone: true,
   templateUrl: './analyzer.page.html',
   styleUrl: './analyzer.page.scss',
-  imports: [MatTooltip, MatButton, MatCard, MatCardTitle, MatCardContent, MatProgressSpinner, MatFormField, MatLabel, MatSelect, MatOption, MatHint, MatInput],
+  imports: [MatTooltip, MatButton, MatCard, MatCardTitle, MatCardContent, MatProgressSpinner, MatFormField, MatLabel, MatSelect, MatOption, MatHint, MatInput, MatCardHeader],
 })
 export class AnalyzerPage {
   private readonly singleDummyService = inject(SingleDummyService);

@@ -1,4 +1,20 @@
 <section class="panel">
   <h1>Contact</h1>
-  <p class="muted">(Placeholder) Add your contact information here.</p>
+
+  <p>
+    <strong>{{ fullName }}</strong>
+  </p>
+
+  <p>
+    Email:
+    <button type="button" (click)="onEmailClick()" aria-label="Send email">
+      <code>{{ emailText() }}</code>
+      <span class="muted small">(click to open email client)</span>
+    </button>
+  </p>
+
+  <p>
+    LinkedIn:
+    <a [href]="linkedInUrl" target="_blank" rel="noopener noreferrer">Profile</a>
+  </p>
 </section>

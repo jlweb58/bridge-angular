@@ -4,6 +4,28 @@
   margin-top: 6px;
 }
 
+/* Material cards: avoid double-padding issues caused by the global `.panel` class */
+.panel-card {
+  margin: 16px 0;
+  border: 1px solid var(--mat-sys-outline-variant, #e5e7eb);
+  border-radius: 12px;
+  background: var(--mat-sys-surface, #ffffff);
+  color: var(--mat-sys-on-surface, #111827);
+}
+
+/* Ensure consistent vertical rhythm so the first form row never “slides under” the title */
+.panel-card mat-card-header {
+  padding-bottom: 8px;
+}
+
+.panel-card mat-card-title {
+  margin: 0; /* remove any default margins that can collapse/stack oddly */
+}
+
+.panel-card mat-card-content {
+  padding-top: 4px;
+}
+
 /* Keep your custom deal panel as-is */
 .panel-deal {
   margin: 16px 0;
