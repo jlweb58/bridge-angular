@@ -7,10 +7,17 @@
 
   <p>
     Email:
-    <button type="button" (click)="onEmailClick()" aria-label="Send email">
+    <a href="#" (click)="onEmailClick($event)" aria-label="Send email">
       <code>{{ emailText() }}</code>
-      <span class="muted small">(click to open email client)</span>
-    </button>
+    </a>
+    <button class="inline-gap-left" type="button" (click)="copyEmailToClipboard()">Copy</button>
+    @if (copied) {
+      <span class="muted small">Copied</span>
+    }
+  </p>
+
+  <p class="muted small">
+    If clicking the email does nothing, your browser may not have an email app configured. Use “Copy” instead.
   </p>
 
   <p>
