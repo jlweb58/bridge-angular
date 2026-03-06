@@ -22,6 +22,7 @@ import {HandPickerDialog} from '../core/components/hand-picker-dialog';
 import { PercentValuePipe } from '../core/pipes/percent-value.pipe';
 import { ConfidenceIntervalPipe } from '../core/pipes/confidence-interval.pipe';
 import {cardsToSuitLines} from '../core/utils/cards-to-suit-lines';
+import {buildHistogramRows} from '../core/utils/build-histogram-rows';
 
 const PARTNER: Record<Player, Player> = {
   NORTH: 'SOUTH',
@@ -87,21 +88,7 @@ export class AnalyzerPage {
   protected readonly southHand = computed(() => cardsToSuitLines(this.deal()?.hands.SOUTH));
   protected readonly westHand = computed(() => cardsToSuitLines(this.deal()?.hands.WEST));
 
-  protected readonly histogramRows = computed(() => {
-    const r = this.response();
-    if (!r) return [] as Array<{ tricks: number; count: number; pct: number }>;
-
-    const total = r.samples || 0;
-
-    return Object.entries(r.tricksHistogram ?? {})
-      .map(([tricks, count]) => ({
-        tricks: Number(tricks),
-        count: Number(count),
-        pct: total > 0 ? Number(count) / total : 0,
-      }))
-      .filter((x) => Number.isFinite(x.tricks) && Number.isFinite(x.count))
-      .sort((a, b) => a.tricks - b.tricks);
-  });
+  protected readonly histogramRows = computed(() => buildHistogramRows(this.response()));
 
   protected openHandPickerDialog(): void {
     const ref = this.dialog.open(HandPickerDialog, {
