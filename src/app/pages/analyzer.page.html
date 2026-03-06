@@ -6,7 +6,7 @@
 
 <mat-card class="panel-card">
   <mat-card-header>
-    <mat-card-title>1) Upload PBN</mat-card-title>
+    <mat-card-title>1) Choose deal input</mat-card-title>
   </mat-card-header>
   <mat-card-content>
     <div class="row">
@@ -16,8 +16,17 @@
         (change)="onPbnFileSelected($event)"
         matTooltip="Select a PBN file to analyze"
       />
+
+      <button mat-stroked-button type="button" (click)="openHandPickerDialog()">
+        Pick North / South cards
+      </button>
+
       @if (pbnFileName()) {
         <span class="muted">Selected: <strong>{{ pbnFileName() }}</strong></span>
+      }
+
+      @if (isManualNsMode()) {
+        <span class="muted">Using manually selected North/South hands.</span>
       }
     </div>
   </mat-card-content>
@@ -31,8 +40,14 @@
 
 @if (dealReady()) {
   <section class="panel-deal">
-    <h2>2) Deal (N/E/S/W)</h2>
+    <h2> @if (showEastWest()) {
+      2) Deal (N/E/S/W)
+    } @else {
+      2) Deal (North / South)
+    }
+    </h2>
 
+    @if (showEastWest()) {
     <div class="table">
       <div class="cell corner"></div>
 
@@ -93,6 +108,29 @@
 
       <div class="cell corner"></div>
     </div>
+    } @else {
+      <div class="table table-ns-only">
+        <div class="cell north">
+          <div class="seat">NORTH</div>
+          <div class="hand">
+            <div class="hand-line spade"><span class="suit">♠</span><span class="ranks">{{ northHand().S }}</span></div>
+            <div class="hand-line heart"><span class="suit">♥</span><span class="ranks">{{ northHand().H }}</span></div>
+            <div class="hand-line diamond"><span class="suit">♦</span><span class="ranks">{{ northHand().D }}</span></div>
+            <div class="hand-line club"><span class="suit">♣</span><span class="ranks">{{ northHand().C }}</span></div>
+          </div>
+        </div>
+
+        <div class="cell south">
+          <div class="seat">SOUTH</div>
+          <div class="hand">
+            <div class="hand-line spade"><span class="suit">♠</span><span class="ranks">{{ southHand().S }}</span></div>
+            <div class="hand-line heart"><span class="suit">♥</span><span class="ranks">{{ southHand().H }}</span></div>
+            <div class="hand-line diamond"><span class="suit">♦</span><span class="ranks">{{ southHand().D }}</span></div>
+            <div class="hand-line club"><span class="suit">♣</span><span class="ranks">{{ southHand().C }}</span></div>
+          </div>
+        </div>
+      </div>
+    }
   </section>
 
   <mat-card class="panel-card">

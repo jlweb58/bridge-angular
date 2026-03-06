@@ -71,6 +71,12 @@
   align-items: stretch;
 }
 
+.table-ns-only {
+  grid-template-columns: repeat(2, minmax(240px, 1fr));
+  grid-template-rows: auto;
+}
+
+
 .cell {
   border: 1px solid #eef2f7;
   border-radius: 10px;

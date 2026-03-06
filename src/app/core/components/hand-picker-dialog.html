@@ -1,0 +1,84 @@
+<h2 mat-dialog-title>Pick North / South cards</h2>
+
+<mat-dialog-content>
+  <div class="picker-header">
+    <mat-button-toggle-group [value]="activeSeat()" (change)="activeSeat.set($event.value)">
+      <mat-button-toggle value="NORTH">North ({{ northCount() }}/13)</mat-button-toggle>
+      <mat-button-toggle value="SOUTH">South ({{ southCount() }}/13)</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    <div class="picker-help">{{ helpText() }}</div>
+  </div>
+
+  <div class="selected-summary">
+    <mat-card class="seat-card">
+      <mat-card-header>
+        <mat-card-title>North</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="seat-actions">
+          <button mat-button type="button" (click)="clearSeat('NORTH')">Clear North</button>
+        </div>
+        <div class="seat-cards">
+          @for (suit of suits; track suit) {
+            <div class="seat-suit">
+              <span class="suit-label" [class.red-suit]="suit === 'H' || suit === 'D'">{{ suitSymbol(suit) }}</span>
+              <span class="seat-ranks">{{ suitRanksForSeat('NORTH', suit) }}</span>
+            </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="seat-card">
+      <mat-card-header>
+        <mat-card-title>South</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="seat-actions">
+          <button mat-button type="button" (click)="clearSeat('SOUTH')">Clear South</button>
+        </div>
+        <div class="seat-cards">
+          @for (suit of suits; track suit) {
+            <div class="seat-suit">
+              <span class="suit-label" [class.red-suit]="suit === 'H' || suit === 'D'">{{ suitSymbol(suit) }}</span>
+              <span class="seat-ranks">{{ suitRanksForSeat('SOUTH', suit) }}</span>
+
+            </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="deck-grid">
+    @for (suit of suits; track suit) {
+      <section class="suit-group">
+        <h3 class="suit-heading" [class.red-suit]="suit === 'H' || suit === 'D'">{{ suitSymbol(suit) }}</h3>
+
+        <div class="card-row">
+          @for (card of cardsForSuit(suit); track card) {
+            <button
+              mat-stroked-button
+              type="button"
+              class="card-chip"
+              [class.assigned-north]="assignmentOf(card) === 'NORTH'"
+              [class.assigned-south]="assignmentOf(card) === 'SOUTH'"
+              [class.active-target]="assignmentOf(card) === activeSeat()"
+              (click)="toggleCard(card)"
+            >
+              {{ card[1] }}
+            </button>
+          }
+        </div>
+      </section>
+    }
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close type="button">Cancel</button>
+  <button mat-raised-button color="primary" type="button" [disabled]="!isValid()" (click)="continue()">
+    Continue
+  </button>
+</mat-dialog-actions>

@@ -17,6 +17,8 @@ import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/mat
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {MatFormField, MatHint, MatInput, MatLabel} from '@angular/material/input';
 import {MatOption, MatSelect} from '@angular/material/select';
+import {MatDialog} from '@angular/material/dialog';
+import {HandPickerDialog} from '../core/components/hand-picker-dialog';
 
 const PARTNER: Record<Player, Player> = {
   NORTH: 'SOUTH',
@@ -37,11 +39,13 @@ type SuitLines = { S: string; H: string; D: string; C: string };
 export class AnalyzerPage {
   private readonly singleDummyService = inject(SingleDummyService);
   private readonly document = inject(DOCUMENT);
+  private readonly dialog = inject(MatDialog);
 
   // --- PBN / Deal ---
   protected readonly pbnFileName = signal<string | null>(null);
   protected readonly pbnRaw = signal<string | null>(null);
   protected readonly deal = signal<Deal | null>(null);
+  protected readonly dealSource = signal<'PBN' | 'MANUAL_NS' | null>(null);
 
   // --- Form selections ---
   protected readonly denominations = DENOMINATIONS;
@@ -72,11 +76,16 @@ export class AnalyzerPage {
   );
 
   protected readonly dealReady = computed(() => !!this.deal());
+  protected readonly isManualNsMode = computed(() => this.dealSource() === 'MANUAL_NS');
+  protected readonly showEastWest = computed(() => !this.isManualNsMode());
 
   protected readonly northHand = computed(() => this.handToSuitLines('NORTH'));
   protected readonly eastHand = computed(() => this.handToSuitLines('EAST'));
   protected readonly southHand = computed(() => this.handToSuitLines('SOUTH'));
   protected readonly westHand = computed(() => this.handToSuitLines('WEST'));
+
+
+
 
   protected readonly confidence95Text = computed(() => {
     const r = this.response();
@@ -116,6 +125,37 @@ export class AnalyzerPage {
     return `${(p * 100).toFixed(digits)}%`;
   }
 
+  protected openHandPickerDialog(): void {
+    const ref = this.dialog.open(HandPickerDialog, {
+      width: '1100px',
+      maxWidth: '96vw',
+      maxHeight: '85vh',
+    });
+
+    ref.afterClosed().subscribe((result?: { north: CardCode[]; south: CardCode[] }) => {
+      if (!result) return;
+
+      this.resetAnalysisState();
+      this.pbnFileName.set(null);
+      this.pbnRaw.set(null);
+
+      this.deal.set({
+        first: 'NORTH',
+        hands: {
+          NORTH: result.north,
+          SOUTH: result.south,
+        },
+      });
+
+      this.dealSource.set('MANUAL_NS');
+      this.declarer.set('SOUTH');
+      this.denomination.set('SPADES');
+      this.level.set(4);
+      this.samples.set(500);
+      this.error.set(null);
+    });
+  }
+
   protected onPbnFileSelected(ev: Event): void {
     const input = ev.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -134,6 +174,7 @@ export class AnalyzerPage {
 
         const parsedDeal = parsePbnToDeal(text);
         this.deal.set(parsedDeal);
+        this.dealSource.set('PBN');
 
         // Sensible defaults once we have a deal:
         this.declarer.set('SOUTH');
@@ -146,6 +187,7 @@ export class AnalyzerPage {
         const msg = e instanceof Error ? e.message : 'Failed to parse PBN.';
         this.error.set(msg);
         this.deal.set(null);
+        this.dealSource.set(null);
       }
     };
 
@@ -219,12 +261,17 @@ export class AnalyzerPage {
     const declarer = this.declarer();
     const dummy = this.dummyPlayer();
 
-    const handsForRequest: Partial<Record<Player, CardCode[]>> = {
-      NORTH: deal.hands.NORTH,
-      EAST: deal.hands.EAST,
-      SOUTH: deal.hands.SOUTH,
-      WEST: deal.hands.WEST,
-    };
+    const handsForRequest: Partial<Record<Player, CardCode[]>> = this.isManualNsMode()
+      ? {
+        NORTH: deal.hands.NORTH,
+        SOUTH: deal.hands.SOUTH,
+      }
+      : {
+        NORTH: deal.hands.NORTH,
+        EAST: deal.hands.EAST,
+        SOUTH: deal.hands.SOUTH,
+        WEST: deal.hands.WEST,
+      };
 
     const request: SingleDummyAnalyzeRequest = {
       declarer,
