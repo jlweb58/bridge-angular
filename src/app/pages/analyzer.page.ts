@@ -20,8 +20,8 @@ import {MatOption, MatSelect} from '@angular/material/select';
 import {MatDialog} from '@angular/material/dialog';
 import {HandPickerDialog} from '../core/components/hand-picker-dialog';
 import { PercentValuePipe } from '../core/pipes/percent-value.pipe';
-import { FixedNumberPipe } from '../core/pipes/fixed-number.pipe';
 import { ConfidenceIntervalPipe } from '../core/pipes/confidence-interval.pipe';
+import {cardsToSuitLines} from '../core/utils/cards-to-suit-lines';
 
 const PARTNER: Record<Player, Player> = {
   NORTH: 'SOUTH',
@@ -30,7 +30,6 @@ const PARTNER: Record<Player, Player> = {
   WEST: 'EAST',
 };
 
-type SuitLines = { S: string; H: string; D: string; C: string };
 type DealSource = 'PBN' | 'MANUAL_NS';
 
 @Component({
@@ -83,10 +82,10 @@ export class AnalyzerPage {
   protected readonly isManualNsMode = computed(() => this.dealSource() === 'MANUAL_NS');
   protected readonly showEastWest = computed(() => !this.isManualNsMode());
 
-  protected readonly northHand = computed(() => this.handToSuitLines('NORTH'));
-  protected readonly eastHand = computed(() => this.handToSuitLines('EAST'));
-  protected readonly southHand = computed(() => this.handToSuitLines('SOUTH'));
-  protected readonly westHand = computed(() => this.handToSuitLines('WEST'));
+  protected readonly northHand = computed(() => cardsToSuitLines(this.deal()?.hands.NORTH));
+  protected readonly eastHand = computed(() => cardsToSuitLines(this.deal()?.hands.EAST));
+  protected readonly southHand = computed(() => cardsToSuitLines(this.deal()?.hands.SOUTH));
+  protected readonly westHand = computed(() => cardsToSuitLines(this.deal()?.hands.WEST));
 
   protected readonly histogramRows = computed(() => {
     const r = this.response();
@@ -290,28 +289,4 @@ export class AnalyzerPage {
     el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  private handToSuitLines(player: Player): SuitLines {
-    const deal = this.deal();
-    if (!deal) return { S: '-', H: '-', D: '-', C: '-' };
-
-    const cards = deal.hands[player] ?? [];
-    const bySuit: Record<'S' | 'H' | 'D' | 'C', string[]> = { S: [], H: [], D: [], C: [] };
-
-    for (const c of cards) {
-      const suit = c[0] as 'S' | 'H' | 'D' | 'C';
-      const rank = c[1];
-      bySuit[suit].push(rank);
-    }
-
-    const rankOrder = 'AKQJT98765432';
-    const sortRanks = (ranks: string[]) =>
-      [...ranks].sort((a, b) => rankOrder.indexOf(a) - rankOrder.indexOf(b)).join('');
-
-    return {
-      S: sortRanks(bySuit.S) || '-',
-      H: sortRanks(bySuit.H) || '-',
-      D: sortRanks(bySuit.D) || '-',
-      C: sortRanks(bySuit.C) || '-',
-    };
-  }
 }
