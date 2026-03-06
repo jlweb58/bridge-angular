@@ -23,6 +23,7 @@ import { PercentValuePipe } from '../core/pipes/percent-value.pipe';
 import { ConfidenceIntervalPipe } from '../core/pipes/confidence-interval.pipe';
 import {cardsToSuitLines} from '../core/utils/cards-to-suit-lines';
 import {buildHistogramRows} from '../core/utils/build-histogram-rows';
+import {DealDisplayComponent} from '../core/components/deal-display';
 
 const PARTNER: Record<Player, Player> = {
   NORTH: 'SOUTH',
@@ -38,7 +39,7 @@ type DealSource = 'PBN' | 'MANUAL_NS';
   standalone: true,
   templateUrl: './analyzer.page.html',
   styleUrl: './analyzer.page.scss',
-  imports: [MatTooltip, MatButton, MatCard, MatCardTitle, MatCardContent, MatProgressSpinner, MatFormField, MatLabel, MatSelect, MatOption, MatHint, MatInput, MatCardHeader, PercentValuePipe, ConfidenceIntervalPipe],
+  imports: [MatTooltip, MatButton, MatCard, MatCardTitle, MatCardContent, MatProgressSpinner, MatFormField, MatLabel, MatSelect, MatOption, MatHint, MatInput, MatCardHeader, PercentValuePipe, ConfidenceIntervalPipe, DealDisplayComponent],
 })
 export class AnalyzerPage {
   private readonly singleDummyService = inject(SingleDummyService);
@@ -70,14 +71,6 @@ export class AnalyzerPage {
 
   protected readonly request = signal<SingleDummyAnalyzeRequest | null>(null);
   protected readonly response = signal<SingleDummyAnalyzeResponse | null>(null);
-
-  protected readonly requestJson = computed(() =>
-    this.request() ? JSON.stringify(this.request(), null, 2) : '',
-  );
-
-  protected readonly responseJson = computed(() =>
-    this.response() ? JSON.stringify(this.response(), null, 2) : '',
-  );
 
   protected readonly dealReady = computed(() => !!this.deal());
   protected readonly isManualNsMode = computed(() => this.dealSource() === 'MANUAL_NS');

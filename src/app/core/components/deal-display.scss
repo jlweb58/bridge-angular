@@ -1,0 +1,98 @@
+.panel-deal {
+  margin: 16px 0;
+  padding: 12px 14px;
+  border: 1px solid #1f3b1f;
+  border-radius: 12px;
+  background: #336e34;
+  color: #ecd25f;
+}
+
+.panel-deal h2 {
+  margin-top: 0;
+  color: #ecd25f;
+}
+
+.panel-deal .muted,
+.panel-deal .small {
+  color: rgb(14, 22, 74);
+}
+
+.panel-deal .cell {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.92);
+  color: #111827;
+}
+
+.panel-deal .center {
+  background: rgba(255, 255, 255, 0.88);
+  color: #111827;
+}
+
+.panel-deal .corner {
+  background: transparent;
+  border: none;
+}
+
+.table {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.table-ns-only {
+  grid-template-columns: repeat(2, minmax(240px, 1fr));
+  grid-template-rows: auto;
+}
+
+.cell {
+  border: 1px solid #eef2f7;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fafafa;
+}
+
+.corner {
+  background: transparent;
+  border: none;
+}
+
+.center {
+  display: grid;
+  place-items: center;
+  background: #fff;
+}
+
+.seat {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.hand {
+  display: grid;
+  gap: 2px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+  'Courier New', monospace;
+}
+
+.hand-line {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  align-items: baseline;
+  line-height: 1.25;
+  color: #111827;
+}
+
+.suit {
+  font-weight: 700;
+}
+
+.ranks {
+  letter-spacing: 0.5px;
+}
+
+.hand-line.heart .suit,
+.hand-line.diamond .suit {
+  color: #b91c1c;
+}
