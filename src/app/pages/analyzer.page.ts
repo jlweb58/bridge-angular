@@ -19,6 +19,9 @@ import {MatFormField, MatHint, MatInput, MatLabel} from '@angular/material/input
 import {MatOption, MatSelect} from '@angular/material/select';
 import {MatDialog} from '@angular/material/dialog';
 import {HandPickerDialog} from '../core/components/hand-picker-dialog';
+import { PercentValuePipe } from '../core/pipes/percent-value.pipe';
+import { FixedNumberPipe } from '../core/pipes/fixed-number.pipe';
+import { ConfidenceIntervalPipe } from '../core/pipes/confidence-interval.pipe';
 
 const PARTNER: Record<Player, Player> = {
   NORTH: 'SOUTH',
@@ -28,13 +31,14 @@ const PARTNER: Record<Player, Player> = {
 };
 
 type SuitLines = { S: string; H: string; D: string; C: string };
+type DealSource = 'PBN' | 'MANUAL_NS';
 
 @Component({
   selector: 'app-analyzer-page',
   standalone: true,
   templateUrl: './analyzer.page.html',
   styleUrl: './analyzer.page.scss',
-  imports: [MatTooltip, MatButton, MatCard, MatCardTitle, MatCardContent, MatProgressSpinner, MatFormField, MatLabel, MatSelect, MatOption, MatHint, MatInput, MatCardHeader],
+  imports: [MatTooltip, MatButton, MatCard, MatCardTitle, MatCardContent, MatProgressSpinner, MatFormField, MatLabel, MatSelect, MatOption, MatHint, MatInput, MatCardHeader, PercentValuePipe, ConfidenceIntervalPipe],
 })
 export class AnalyzerPage {
   private readonly singleDummyService = inject(SingleDummyService);
@@ -45,7 +49,7 @@ export class AnalyzerPage {
   protected readonly pbnFileName = signal<string | null>(null);
   protected readonly pbnRaw = signal<string | null>(null);
   protected readonly deal = signal<Deal | null>(null);
-  protected readonly dealSource = signal<'PBN' | 'MANUAL_NS' | null>(null);
+  protected readonly dealSource = signal<DealSource | null>(null);
 
   // --- Form selections ---
   protected readonly denominations = DENOMINATIONS;
@@ -84,15 +88,6 @@ export class AnalyzerPage {
   protected readonly southHand = computed(() => this.handToSuitLines('SOUTH'));
   protected readonly westHand = computed(() => this.handToSuitLines('WEST'));
 
-
-
-
-  protected readonly confidence95Text = computed(() => {
-    const r = this.response();
-    if (!r) return '';
-    return `${this.formatDecimal(r.confidence95.low)}–${this.formatDecimal(r.confidence95.high)}`;
-  });
-
   protected readonly histogramRows = computed(() => {
     const r = this.response();
     if (!r) return [] as Array<{ tricks: number; count: number; pct: number }>;
@@ -109,22 +104,6 @@ export class AnalyzerPage {
       .sort((a, b) => a.tricks - b.tricks);
   });
 
-  protected readonly successProbabilityPct = computed(() => {
-    const r = this.response();
-    if (!r) return '';
-    return `${this.formatPercent(r.successProbability)}`;
-  });
-
-  private formatDecimal(n: number, digits = 2): string {
-    if (!Number.isFinite(n)) return '-';
-    return n.toFixed(digits);
-  }
-
-  private formatPercent(p: number, digits = 1): string {
-    if (!Number.isFinite(p)) return '-';
-    return `${(p * 100).toFixed(digits)}%`;
-  }
-
   protected openHandPickerDialog(): void {
     const ref = this.dialog.open(HandPickerDialog, {
       width: '1100px',
@@ -135,24 +114,19 @@ export class AnalyzerPage {
     ref.afterClosed().subscribe((result?: { north: CardCode[]; south: CardCode[] }) => {
       if (!result) return;
 
-      this.resetAnalysisState();
+      this.applyDeal(
+        {
+          first: 'NORTH',
+          hands: {
+            NORTH: result.north,
+            SOUTH: result.south,
+          },
+        },
+        'MANUAL_NS',
+      );
+
       this.pbnFileName.set(null);
       this.pbnRaw.set(null);
-
-      this.deal.set({
-        first: 'NORTH',
-        hands: {
-          NORTH: result.north,
-          SOUTH: result.south,
-        },
-      });
-
-      this.dealSource.set('MANUAL_NS');
-      this.declarer.set('SOUTH');
-      this.denomination.set('SPADES');
-      this.level.set(4);
-      this.samples.set(500);
-      this.error.set(null);
     });
   }
 
@@ -162,7 +136,6 @@ export class AnalyzerPage {
     if (!file) return;
 
     this.resetAnalysisState();
-
     this.pbnFileName.set(file.name);
 
     const reader = new FileReader();
@@ -172,17 +145,7 @@ export class AnalyzerPage {
         const text = String(reader.result ?? '');
         this.pbnRaw.set(text);
 
-        const parsedDeal = parsePbnToDeal(text);
-        this.deal.set(parsedDeal);
-        this.dealSource.set('PBN');
-
-        // Sensible defaults once we have a deal:
-        this.declarer.set('SOUTH');
-        this.denomination.set('SPADES');
-        this.level.set(4);
-        this.samples.set(500);
-
-        this.error.set(null);
+        this.applyDeal(parsePbnToDeal(text), 'PBN');
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : 'Failed to parse PBN.';
         this.error.set(msg);
@@ -258,31 +221,7 @@ export class AnalyzerPage {
       return;
     }
 
-    const declarer = this.declarer();
-    const dummy = this.dummyPlayer();
-
-    const handsForRequest: Partial<Record<Player, CardCode[]>> = this.isManualNsMode()
-      ? {
-        NORTH: deal.hands.NORTH,
-        SOUTH: deal.hands.SOUTH,
-      }
-      : {
-        NORTH: deal.hands.NORTH,
-        EAST: deal.hands.EAST,
-        SOUTH: deal.hands.SOUTH,
-        WEST: deal.hands.WEST,
-      };
-
-    const request: SingleDummyAnalyzeRequest = {
-      declarer,
-      dummy,
-      contract: {
-        level: this.level(),
-        denomination: this.denomination(),
-      },
-      hands: handsForRequest,
-      samples,
-    };
+    const request = this.buildAnalyzeRequest(deal, samples);
 
     this.request.set(request);
     this.loading.set(true);
@@ -299,6 +238,44 @@ export class AnalyzerPage {
         this.loading.set(false);
       },
     });
+  }
+
+  private applyDeal(deal: Deal, source: DealSource): void {
+    this.resetAnalysisState();
+    this.deal.set(deal);
+    this.dealSource.set(source);
+    this.resetDefaultsForNewDeal();
+    this.error.set(null);
+  }
+
+  private resetDefaultsForNewDeal(): void {
+    this.declarer.set('SOUTH');
+    this.denomination.set('SPADES');
+    this.level.set(4);
+    this.samples.set(500);
+  }
+
+  private buildAnalyzeRequest(deal: Deal, samples: number): SingleDummyAnalyzeRequest {
+    return {
+      declarer: this.declarer(),
+      dummy: this.dummyPlayer(),
+      contract: {
+        level: this.level(),
+        denomination: this.denomination(),
+      },
+      hands: this.isManualNsMode()
+        ? {
+          NORTH: deal.hands.NORTH,
+          SOUTH: deal.hands.SOUTH,
+        }
+        : {
+          NORTH: deal.hands.NORTH,
+          EAST: deal.hands.EAST,
+          SOUTH: deal.hands.SOUTH,
+          WEST: deal.hands.WEST,
+        },
+      samples,
+    };
   }
 
   private resetAnalysisState(): void {

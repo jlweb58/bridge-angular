@@ -224,12 +224,12 @@
 
         <div class="summary-item">
           <div class="summary-label" matTooltip="Probability of success based on the analysis">Success probability</div>
-          <div class="summary-value">{{ successProbabilityPct() }}</div>
+          <div class="summary-value">{{ response()!.successProbability | percentValue:1 }}</div>
         </div>
 
         <div class="summary-item">
           <div class="summary-label" matTooltip="Range within which the true success probability is expected to lie with 95% confidence">95% Confidence Interval</div>
-          <div class="summary-value">{{ confidence95Text() }}</div>
+          <div class="summary-value">{{ response()!.confidence95 | confidenceInterval:2 }}</div>
         </div>
       </div>
 
@@ -251,7 +251,7 @@
               <tr>
                 <td>{{ row.tricks }}</td>
                 <td class="num">{{ row.count }}</td>
-                <td class="num">{{ (row.pct * 100).toFixed(1) }}%</td>
+                <td class="num">{{ row.pct | percentValue:1 }}</td>
               </tr>
             }
           </tbody>
