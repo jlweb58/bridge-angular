@@ -16,14 +16,15 @@
   margin: 0 -16px 14px;
   padding: 6px 8px;
 
-  border-bottom: 1px solid #bfd7ea;
-  background: rgba(232, 242, 252, 0.92);
+  border-bottom: 1px solid #184f1e;
+  background: #336e34;
   backdrop-filter: blur(8px);
 }
 
 .brand {
   font-weight: 800;
-  color: #1e3a5f;
+  font-size: 20px;
+  color: #ecd25f !important;
   text-decoration: none;
   letter-spacing: 0.2px;
 }
@@ -37,6 +38,10 @@
   align-items: center;
   gap: 4px;
   flex-wrap: wrap;
+}
+
+.menu a.menu-link {
+  color: #ecd25f;
 }
 
 .content-card {

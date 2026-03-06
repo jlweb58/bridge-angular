@@ -1,0 +1,29 @@
+<section class="panel">
+  <h1>About this application</h1>
+
+  <p>You may ask how this application works, how does it calculate the single dummy results?</p>
+
+  <p>The single dummy analysis uses the double dummy analysis of the Bridge DDS library.</p>
+
+  <p>Where <code>n</code> is the number of samples chosen, the library generates <code>n</code> hands that complete the declarer
+  and dummy hands provided, and then for each hand calculates the number of tricks declarer can take with the given strain (trump suit or no-trump).</p>
+
+  <p>The greater the sample size, the more accurate - but the longer it takes the calculation to run. To protect the application (and the server),
+  the sample size is limited to 2000.</p>
+
+  <p>The results of the calculation are then averaged to provide an estimate of the probability of the declarer taking a certain number of tricks.</p>
+
+  <p>For example, if the user wants to know the probability of declarer taking 6 tricks with a given hand and dummy,
+    the application will generate <code>n</code> hands that complete the declarer and dummy hands provided,
+    and then for each hand calculate the number of tricks declarer can take with the given strain (trump suit or no-trump).
+    The results of the calculation are then averaged to provide an estimate of the probability of the declarer taking 6 tricks.</p>
+
+  <p>The calculation assumes the best possible opening lead on each hand, and assumes the most successful possible play by declarer.</p>
+
+  <p>This obviously doesn't match real life, but it provides a useful estimate of the probability of declarer taking a certain number of tricks.</p>
+
+  <p>Future versions of this may try to improve on the algorithm, for example by incorporating more realistic assumptions about opening leads and play.</p>
+
+  <p>I welcome feedback and suggestions!</p>
+
+</section>
