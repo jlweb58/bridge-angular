@@ -11,16 +11,19 @@
       <a mat-button disabled>Other areas (TBD)</a>
     </nav>
   </mat-toolbar>
+  <mat-card class="content-card">
+    <mat-card-content>
+      <router-outlet />
 
-  <router-outlet />
-
-  <footer class="footer" role="contentinfo">
-    <div class="footer-inner">
-      <div class="footer-credits">
-        Single-dummy analysis powered by the DDS library by Bo Haglund / Soren Hein:
-        <a href="https://github.com/dds-bridge/dds/" target="_blank" rel="noopener noreferrer">github.com/dds-bridge/dds</a>
-      </div>
-    </div>
-  </footer>
+      <footer class="footer" role="contentinfo">
+        <div class="footer-inner">
+          <div class="footer-credits">
+            Single-dummy analysis powered by the DDS library by Bo Haglund / Soren Hein:
+            <a href="https://github.com/dds-bridge/dds/" target="_blank" rel="noopener noreferrer">github.com/dds-bridge/dds</a>
+          </div>
+        </div>
+      </footer>
+    </mat-card-content>
+  </mat-card>
 
 </div>

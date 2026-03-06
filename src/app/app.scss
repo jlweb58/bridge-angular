@@ -16,14 +16,14 @@
   margin: 0 -16px 14px;
   padding: 6px 8px;
 
-  border-bottom: 1px solid var(--mat-sys-outline-variant, #e5e7eb);
-  background: var(--mat-sys-surface-container, rgba(255, 255, 255, 0.92));
+  border-bottom: 1px solid #bfd7ea;
+  background: rgba(232, 242, 252, 0.92);
   backdrop-filter: blur(8px);
 }
 
 .brand {
   font-weight: 800;
-  color: var(--mat-sys-on-surface, #111827);
+  color: #1e3a5f;
   text-decoration: none;
   letter-spacing: 0.2px;
 }
@@ -37,6 +37,19 @@
   align-items: center;
   gap: 4px;
   flex-wrap: wrap;
+}
+
+.content-card {
+  margin-top: 18px;
+  border-radius: 18px;
+  background: var(--mat-sys-surface, #ffffff);
+  box-shadow: 0 10px 30px rgba(30, 58, 95, 0.08);
+  overflow: hidden;
+}
+
+.content-card mat-card-content {
+  display: block;
+  padding: 20px 22px;
 }
 
 .page-title {
