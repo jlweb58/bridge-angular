@@ -23,7 +23,7 @@ jobs:
         run: npm ci
 
       - name: Build application
-        run: npm run build --production
+        run: npm run build --production -- --base-href /bridge/
 
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
