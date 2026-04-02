@@ -6,7 +6,7 @@
       <div class="cell corner"></div>
 
       <div class="cell north">
-        <div class="seat">NORTH</div>
+        <div class="seat">NORTH{{ handValueLabel('NORTH') }}</div>
         <div class="hand">
           <div class="hand-line spade"><span class="suit">♠</span><span class="ranks">{{ northHand().S }}</span></div>
           <div class="hand-line heart"><span class="suit">♥</span><span class="ranks">{{ northHand().H }}</span></div>
@@ -18,7 +18,7 @@
       <div class="cell corner"></div>
 
       <div class="cell west">
-        <div class="seat">WEST</div>
+        <div class="seat">WEST{{ handValueLabel('WEST') }}</div>
         <div class="hand">
           <div class="hand-line spade"><span class="suit">♠</span><span class="ranks">{{ westHand().S }}</span></div>
           <div class="hand-line heart"><span class="suit">♥</span><span class="ranks">{{ westHand().H }}</span></div>
