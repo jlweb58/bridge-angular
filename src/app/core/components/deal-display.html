@@ -90,8 +90,10 @@
       </div>
 
       <div class="cell south">
-        <div class="seat">SOUTH{{ handValueLabel('SOUTH') }}</div>
-        <div class="hand">
+        <div class="seat">
+          <span class="seat-label">SOUTH</span>
+          <span class="points-label">{{ handValueLabel('SOUTH') }}</span>
+        </div>        <div class="hand">
           <div class="hand-line spade"><span class="suit">♠</span><span class="ranks">{{ southHand().S }}</span></div>
           <div class="hand-line heart"><span class="suit">♥</span><span class="ranks">{{ southHand().H }}</span></div>
           <div class="hand-line diamond"><span class="suit">♦</span><span class="ranks">{{ southHand().D }}</span></div>
