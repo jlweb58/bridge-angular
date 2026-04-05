@@ -113,7 +113,17 @@
           </div>
         </div>
       </div>
-
+      <div class="export-actions">
+        <button type="button" class="secondary" (click)="exportWest()" [disabled]="results().length === 0 || isExporting()">
+          Export West PDF
+        </button>
+        <button type="button" class="secondary" (click)="exportEast()" [disabled]="results().length === 0 || isExporting()">
+          Export East PDF
+        </button>
+        <button type="button" class="secondary" (click)="exportBoth()" [disabled]="results().length === 0 || isExporting()">
+          Export Both PDFs
+        </button>
+      </div>
       @if (error()) {
         <p class="error">{{ error() }}</p>
       }

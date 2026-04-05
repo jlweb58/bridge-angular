@@ -3,9 +3,10 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
-import { type CardCode, type SuitChar } from '../models/cards';
+import { type SuitChar } from '../models/cards';
 import { HandGenerationService, type HandGenerationRequest, type GeneratedHandPair } from '../services/hand-generation.service';
 import { GeneratedHandsViewComponent } from './generated-hands-view';
+import {HandGenerationPdfService} from '../services/hand-generation-pdf.service';
 
 type Player = 'WEST' | 'EAST';
 
@@ -23,8 +24,10 @@ interface Range {
 })
 export class HandGeneration {
   private readonly handGenerationService = inject(HandGenerationService);
+  private readonly handGenerationPdfService = inject(HandGenerationPdfService);
 
   protected readonly isLoading = signal(false);
+  protected readonly isExporting = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly results = signal<GeneratedHandPair[]>([]);
 
@@ -89,9 +92,27 @@ export class HandGeneration {
       });
   }
 
-  protected trackByIndex(index: number): number {
-    return index;
+  protected exportWest(): void {
+    if (this.results().length === 0) return;
+    this.exportPlayer('WEST');
   }
+
+  protected exportEast(): void {
+    if (this.results().length === 0) return;
+    this.exportPlayer('EAST');
+  }
+
+  protected exportBoth(): void {
+    if (this.results().length === 0) return;
+    this.isExporting.set(true);
+
+    try {
+      this.handGenerationPdfService.exportBothPdfs(this.results());
+    } finally {
+      this.isExporting.set(false);
+    }
+  }
+
 
   protected setSuitMin(player: Player, suit: SuitChar, value: string): void {
     const nextValue = this.parseNumber(value, 0);
@@ -101,6 +122,16 @@ export class HandGeneration {
   protected setSuitMax(player: Player, suit: SuitChar, value: string): void {
     const nextValue = this.parseNumber(value, 13);
     this.updateSuitRange(player, suit, { max: nextValue });
+  }
+
+  private exportPlayer(player: Player): void {
+    this.isExporting.set(true);
+
+    try {
+      this.handGenerationPdfService.exportPlayerPdf(player, this.results());
+    } finally {
+      this.isExporting.set(false);
+    }
   }
 
   private updateSuitRange(player: Player, suit: SuitChar, patch: Partial<Range>): void {

@@ -99,17 +99,34 @@
   justify-content: flex-start;
 }
 
-.primary {
+.primary,
+.secondary {
   padding: 10px 14px;
   border: 0;
   border-radius: 999px;
-  background: #1976d2;
-  color: #fff;
   font-weight: 600;
 }
 
-.primary:disabled {
+.primary {
+  background: #1976d2;
+  color: #fff;
+}
+
+.secondary {
+  background: rgba(25, 118, 210, 0.12);
+  color: #1976d2;
+}
+
+.primary:disabled,
+.secondary:disabled {
   opacity: 0.7;
+}
+
+.export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
 }
 
 .suit-grid {
