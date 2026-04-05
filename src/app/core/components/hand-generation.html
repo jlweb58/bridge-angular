@@ -7,11 +7,9 @@
   </header>
 
   <section class="panel">
-    <div class="grid grid-2">
-      <div class="card">
-        <h2>Generation settings</h2>
-
-        <label class="field">
+    <div class="grid generation-controls">
+      <div class="card generation-row">
+        <label class="field hands-count-field">
           <span>Number of hand pairs</span>
           <input
             type="number"
@@ -21,102 +19,104 @@
           />
         </label>
 
-        <div class="actions">
+        <div class="actions generation-actions">
           <button type="button" class="primary" (click)="generate()" [disabled]="isLoading()">
             {{ isLoading() ? 'Generating…' : 'Generate' }}
           </button>
         </div>
-
-        @if (error()) {
-          <p class="error">{{ error() }}</p>
-        }
       </div>
 
-      <div class="card">
-        <h2>West</h2>
+      <div class="grid grid-2">
+        <div class="card">
+          <h2>West</h2>
 
-        <div class="grid grid-2 compact">
-          <label class="field">
-            <span>Min HCP</span>
-            <input type="number" min="0" max="37" [ngModel]="westMinPoints()" (ngModelChange)="westMinPoints.set($event)" />
-          </label>
-          <label class="field">
-            <span>Max HCP</span>
-            <input type="number" min="0" max="37" [ngModel]="westMaxPoints()" (ngModelChange)="westMaxPoints.set($event)" />
-          </label>
+          <div class="grid grid-2 compact">
+            <label class="field">
+              <span>Min HCP</span>
+              <input type="number" min="0" max="37" [ngModel]="westMinPoints()" (ngModelChange)="westMinPoints.set($event)" />
+            </label>
+            <label class="field">
+              <span>Max HCP</span>
+              <input type="number" min="0" max="37" [ngModel]="westMaxPoints()" (ngModelChange)="westMaxPoints.set($event)" />
+            </label>
+          </div>
+
+          <div class="suit-grid">
+            @for (suit of suitChars; track suit) {
+              <div class="suit-row">
+                <div class="suit-label">{{ suit }}</div>
+                <label class="field inline">
+                  <span>Min</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="13"
+                    [ngModel]="westSuitRanges()[suit].min"
+                    (ngModelChange)="setSuitMin('WEST', suit, $event)"
+                  />
+                </label>
+                <label class="field inline">
+                  <span>Max</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="13"
+                    [ngModel]="westSuitRanges()[suit].max"
+                    (ngModelChange)="setSuitMax('WEST', suit, $event)"
+                  />
+                </label>
+              </div>
+            }
+          </div>
         </div>
 
-        <div class="suit-grid">
-          @for (suit of suitChars; track suit) {
-            <div class="suit-row">
-              <div class="suit-label">{{ suit }}</div>
-              <label class="field inline">
-                <span>Min</span>
-                <input
-                  type="number"
-                  min="0"
-                  max="13"
-                  [ngModel]="westSuitRanges()[suit].min"
-                  (ngModelChange)="setSuitMin('WEST', suit, $event)"
-                />
-              </label>
-              <label class="field inline">
-                <span>Max</span>
-                <input
-                  type="number"
-                  min="0"
-                  max="13"
-                  [ngModel]="westSuitRanges()[suit].max"
-                  (ngModelChange)="setSuitMax('WEST', suit, $event)"
-                />
-              </label>
-            </div>
-          }
+        <div class="card">
+          <h2>East</h2>
+
+          <div class="grid grid-2 compact">
+            <label class="field">
+              <span>Min HCP</span>
+              <input type="number" min="0" max="37" [ngModel]="eastMinPoints()" (ngModelChange)="eastMinPoints.set($event)" />
+            </label>
+            <label class="field">
+              <span>Max HCP</span>
+              <input type="number" min="0" max="37" [ngModel]="eastMaxPoints()" (ngModelChange)="eastMaxPoints.set($event)" />
+            </label>
+          </div>
+
+          <div class="suit-grid">
+            @for (suit of suitChars; track suit) {
+              <div class="suit-row">
+                <div class="suit-label">{{ suit }}</div>
+                <label class="field inline">
+                  <span>Min</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="13"
+                    [ngModel]="eastSuitRanges()[suit].min"
+                    (ngModelChange)="setSuitMin('EAST', suit, $event)"
+                  />
+                </label>
+                <label class="field inline">
+                  <span>Max</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="13"
+                    [ngModel]="eastSuitRanges()[suit].max"
+                    (ngModelChange)="setSuitMax('EAST', suit, $event)"
+                  />
+                </label>
+              </div>
+            }
+          </div>
         </div>
       </div>
 
-      <div class="card">
-        <h2>East</h2>
-
-        <div class="grid grid-2 compact">
-          <label class="field">
-            <span>Min HCP</span>
-            <input type="number" min="0" max="37" [ngModel]="eastMinPoints()" (ngModelChange)="eastMinPoints.set($event)" />
-          </label>
-          <label class="field">
-            <span>Max HCP</span>
-            <input type="number" min="0" max="37" [ngModel]="eastMaxPoints()" (ngModelChange)="eastMaxPoints.set($event)" />
-          </label>
-        </div>
-
-        <div class="suit-grid">
-          @for (suit of suitChars; track suit) {
-            <div class="suit-row">
-              <div class="suit-label">{{ suit }}</div>
-              <label class="field inline">
-                <span>Min</span>
-                <input
-                  type="number"
-                  min="0"
-                  max="13"
-                  [ngModel]="eastSuitRanges()[suit].min"
-                  (ngModelChange)="setSuitMin('EAST', suit, $event)"
-                />
-              </label>
-              <label class="field inline">
-                <span>Max</span>
-                <input
-                  type="number"
-                  min="0"
-                  max="13"
-                  [ngModel]="eastSuitRanges()[suit].max"
-                  (ngModelChange)="setSuitMax('EAST', suit, $event)"
-                />
-              </label>
-            </div>
-          }
-        </div>
-      </div>
+      @if (error()) {
+        <p class="error">{{ error() }}</p>
+      }
     </div>
   </section>
 
@@ -124,7 +124,7 @@
     <section class="results">
       <div class="results-header">
         <h2>Generated hands</h2>
-        <p>{{ results().length }} hand pair@if (results().length > 1) {s}</p>
+        <p>{{ results().length }} hand pair(s)</p>
       </div>
 
       <app-generated-hands-view [hands]="results()" />
