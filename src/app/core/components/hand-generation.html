@@ -124,7 +124,7 @@
     <section class="results">
       <div class="results-header">
         <h2>Generated hands</h2>
-        <p>{{ results().length }} hand pair(s)</p>
+        <p>{{ results().length }} hand pair@if(results().length > 1){s}</p>
       </div>
 
       <app-generated-hands-view [hands]="results()" />
