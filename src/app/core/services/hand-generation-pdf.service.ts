@@ -29,11 +29,16 @@ export class HandGenerationPdfService {
 
     const handSections: Content[] = hands.flatMap((pair, index): Content[] => [
       {
-        text: `Hand pair ${index + 1}`,
-        style: 'pairTitle',
-        margin: [0, index === 0 ? 0 : 12, 0, 6],
+        unbreakable: true,
+        stack: [
+          {
+            text: `Hand pair ${index + 1}`,
+            style: 'pairTitle',
+            margin: [0, index === 0 ? 0 : 12, 0, 6],
+          },
+          this.buildHandBlock(pair[player]),
+        ],
       },
-      this.buildHandBlock(pair[player]),
     ]);
 
     const docDefinition: TDocumentDefinitions = {
