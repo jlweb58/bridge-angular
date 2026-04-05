@@ -68,15 +68,15 @@ export class HandGenerationPdfService {
           fontSize: 13,
           bold: true,
         },
-        suitRow: {
-          margin: [0, 2, 0, 2],
-        },
         suitSymbol: {
           bold: true,
           fontSize: 13,
         },
         redSuit: {
           color: '#b91c1c',
+        },
+        blackSuit: {
+          color: '#000000',
         },
         cardText: {
           fontSize: 11,
@@ -102,26 +102,42 @@ export class HandGenerationPdfService {
     }
 
   private buildHandBlock(cards: CardCode[] | undefined): Content {
-    const content: Content[] = this.suitChars.map((suit) => ({
+    return {
       columns: [
         {
-          width: 18,
-          text: this.suitSymbol(suit),
-          style: ['suitSymbol', this.isRedSuit(suit) ? 'redSuit' : ''],
+          width: '*',
+          columns: [
+            { width: 14, text: '♠', style: ['suitSymbol', 'blackSuit'] },
+            { width: '*', text: this.suitRanks(cards ?? [], 'S') || '—', style: 'cardText' },
+          ],
+          columnGap: 4,
         },
         {
           width: '*',
-          text: this.suitRanks(cards ?? [], suit) || '—',
-          style: 'cardText',
+          columns: [
+            { width: 14, text: '♥', style: ['suitSymbol', 'redSuit'] },
+            { width: '*', text: this.suitRanks(cards ?? [], 'H') || '—', style: 'cardText' },
+          ],
+          columnGap: 4,
+        },
+        {
+          width: '*',
+          columns: [
+            { width: 14, text: '♦', style: ['suitSymbol', 'redSuit'] },
+            { width: '*', text: this.suitRanks(cards ?? [], 'D') || '—', style: 'cardText' },
+          ],
+          columnGap: 4,
+        },
+        {
+          width: '*',
+          columns: [
+            { width: 14, text: '♣', style: ['suitSymbol', 'blackSuit'] },
+            { width: '*', text: this.suitRanks(cards ?? [], 'C') || '—', style: 'cardText' },
+          ],
+          columnGap: 4,
         },
       ],
-      columnGap: 6,
-      margin: [0, 1, 0, 1],
-      style: 'suitRow',
-    }));
-
-    return {
-      stack: content,
+      columnGap: 10,
       margin: [0, 0, 0, 6],
     };
   }
