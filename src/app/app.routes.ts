@@ -5,9 +5,11 @@ import {PrivacyPage} from './pages/privacy.page';
 import {AboutPage} from './pages/about.page';
 import {LinksPage} from './pages/links.page';
 import {FaqPage} from './pages/faq.page';
+import {HandGeneration} from './core/components/hand-generation';
 
 export const routes: Routes = [
   { path: '', component: AnalyzerPage, title: 'Bridge Hand Analysis' },
+  { path: 'hand-generation', component: HandGeneration, title: 'Hand Generation' },
   { path: 'contact', component: ContactPage, title: 'Contact &amp; Legal' },
   { path: 'privacy', component: PrivacyPage, title: 'Data Privacy Statement' },
   { path: 'links', component: LinksPage, title: 'Links' },

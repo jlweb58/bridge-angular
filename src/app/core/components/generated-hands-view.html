@@ -1,0 +1,41 @@
+<div class="generated-hands">
+  @for (pair of hands(); track trackByIndex($index)) {
+    <section class="pair-card">
+      <header class="pair-header">
+        <h3>Hand {{ $index + 1 }}</h3>
+      </header>
+
+      <div class="pair-grid">
+        <div class="hand-column">
+          <div class="hand-title">West</div>
+
+          <div class="hand-suits">
+            @for (suit of suitChars; track suit) {
+              <div class="hand-suit">
+                <span class="suit-label" [class.red-suit]="suit === 'H' || suit === 'D'">
+                  {{ suitSymbol(suit) }}
+                </span>
+                <span class="suit-cards">{{ suitRanks(pair.WEST, suit) }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="hand-column">
+          <div class="hand-title">East</div>
+
+          <div class="hand-suits">
+            @for (suit of suitChars; track suit) {
+              <div class="hand-suit">
+                <span class="suit-label" [class.red-suit]="suit === 'H' || suit === 'D'">
+                  {{ suitSymbol(suit) }}
+                </span>
+                <span class="suit-cards">{{ suitRanks(pair.EAST, suit) }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+</div>

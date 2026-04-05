@@ -1,0 +1,68 @@
+:host {
+  display: block;
+}
+
+.generated-hands {
+  display: grid;
+  gap: 14px;
+}
+
+.pair-card {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  background: var(--mat-sys-surface, #fff);
+  padding: 14px;
+}
+
+.pair-header h3 {
+  margin: 0 0 10px;
+}
+
+.pair-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.hand-column {
+  display: grid;
+  gap: 6px;
+}
+
+.hand-title {
+  font-weight: 700;
+}
+
+.hand-suits {
+  display: grid;
+  gap: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+}
+
+.hand-suit {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.suit-label {
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.red-suit {
+  color: #b91c1c;
+}
+
+.suit-cards {
+  letter-spacing: 0.02em;
+  word-break: break-word;
+}
+
+@media (max-width: 700px) {
+  .pair-grid {
+    grid-template-columns: 1fr;
+  }
+}
