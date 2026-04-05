@@ -7,7 +7,11 @@ import { type CardCode, type SuitChar } from '../models/cards';
 import type { GeneratedHandPair } from './hand-generation.service';
 
 type Player = 'WEST' | 'EAST';
-type PdfMakeLike = typeof pdfMake & { vfs?: Record<string, string> };
+type PdfMakeLike = {
+  vfs?: Record<string, string>;
+  fonts?: Record<string, { normal: string; bold?: string; italics?: string; bolditalics?: string }>;
+  createPdf: typeof pdfMake.createPdf;
+};
 
 interface PdfExportOptions {
   batchId?: string;
@@ -17,9 +21,8 @@ interface PdfExportOptions {
   providedIn: 'root',
 })
 export class HandGenerationPdfService {
-  private readonly suitChars: SuitChar[] = ['S', 'H', 'D', 'C'];
   private readonly rankOrder = 'AKQJT98765432';
-  private vfsReady = false;
+  private pdfReady = false;
 
   exportPlayerPdf(player: Player, hands: GeneratedHandPair[], options: PdfExportOptions = {}): void {
     this.ensurePdfMakeReady();
@@ -69,7 +72,6 @@ export class HandGenerationPdfService {
           bold: true,
         },
         suitSymbol: {
-          bold: true,
           fontSize: 13,
         },
         redSuit: {
@@ -95,51 +97,78 @@ export class HandGenerationPdfService {
   }
 
   private ensurePdfMakeReady(): void {
-    if (this.vfsReady) return;
+    if (this.pdfReady) return;
 
-    (pdfMake as PdfMakeLike).vfs = pdfFonts as Record<string, string>;
-    this.vfsReady = true;
-    }
+    const pdfMakeLike = pdfMake as PdfMakeLike;
+    pdfMakeLike.vfs ??= pdfFonts as Record<string, string>;
+
+    this.pdfReady = true;
+  }
 
   private buildHandBlock(cards: CardCode[] | undefined): Content {
+    const handCards = cards ?? [];
+
     return {
       columns: [
-        {
-          width: '*',
-          columns: [
-            { width: 14, text: '♠', style: ['suitSymbol', 'blackSuit'] },
-            { width: '*', text: this.suitRanks(cards ?? [], 'S') || '—', style: 'cardText' },
-          ],
-          columnGap: 4,
-        },
-        {
-          width: '*',
-          columns: [
-            { width: 14, text: '♥', style: ['suitSymbol', 'redSuit'] },
-            { width: '*', text: this.suitRanks(cards ?? [], 'H') || '—', style: 'cardText' },
-          ],
-          columnGap: 4,
-        },
-        {
-          width: '*',
-          columns: [
-            { width: 14, text: '♦', style: ['suitSymbol', 'redSuit'] },
-            { width: '*', text: this.suitRanks(cards ?? [], 'D') || '—', style: 'cardText' },
-          ],
-          columnGap: 4,
-        },
-        {
-          width: '*',
-          columns: [
-            { width: 14, text: '♣', style: ['suitSymbol', 'blackSuit'] },
-            { width: '*', text: this.suitRanks(cards ?? [], 'C') || '—', style: 'cardText' },
-          ],
-          columnGap: 4,
-        },
+        this.suitCell('S', handCards),
+        this.suitCell('H', handCards),
+        this.suitCell('D', handCards),
+        this.suitCell('C', handCards),
       ],
       columnGap: 10,
       margin: [0, 0, 0, 6],
     };
+  }
+
+  private suitCell(suit: SuitChar, cards: CardCode[]): Content {
+    return {
+      width: '*',
+      columns: [
+        {
+          width: 16,
+          svg: this.suitSvg(suit),
+          fit: [14, 14],
+          margin: [0, 0, 0, 0],
+        },
+        {
+          width: '*',
+          text: this.suitRanks(cards, suit) || '—',
+          style: 'cardText',
+        },
+      ],
+      columnGap: 4,
+      margin: [0, 1, 0, 3],
+
+    } as Content;
+  }
+
+  private suitSvg(suit: SuitChar): string {
+    const fill = suit === 'H' || suit === 'D' ? '#b91c1c' : '#000000';
+
+    switch (suit) {
+      case 'S':
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <path fill="${fill}" d="M60 10c-6 12-14 20-22 28-12 12-24 24-24 38 0 13 10 24 24 24 8 0 15-3 19-9l3-5 3 5c4 6 11 9 19 9 14 0 24-11 24-24 0-14-12-26-24-38-8-8-16-16-22-28z"/>
+  <rect fill="${fill}" x="55" y="64" width="10" height="28" rx="2"/>
+  <rect fill="${fill}" x="50" y="86" width="20" height="32" rx="2"/>
+</svg>`;
+      case 'H':
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <path fill="${fill}" d="M60 104 18 62C2 46 4 20 28 20c12 0 20 6 26 15 6-9 14-15 26-15 24 0 26 26 10 42L60 104z"/>
+</svg>`;
+      case 'D':
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <path fill="${fill}" d="M60 12 104 60 60 108 16 60 60 12z"/>
+</svg>`;
+      case 'C':
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <circle fill="${fill}" cx="60" cy="36" r="16"/>
+  <circle fill="${fill}" cx="40" cy="58" r="16"/>
+  <circle fill="${fill}" cx="80" cy="58" r="16"/>
+  <rect fill="${fill}" x="54" y="56" width="12" height="26" rx="2"/>
+  <rect fill="${fill}" x="50" y="78" width="20" height="14" rx="2"/>
+</svg>`;
+    }
   }
 
   private suitRanks(cards: CardCode[], suit: SuitChar): string {
@@ -148,19 +177,6 @@ export class HandGenerationPdfService {
       .sort((a, b) => this.rankOrder.indexOf(a[1]) - this.rankOrder.indexOf(b[1]))
       .map((card) => card[1])
       .join('');
-  }
-
-  private suitSymbol(suit: SuitChar): string {
-    switch (suit) {
-      case 'S': return '♠';
-      case 'H': return '♥';
-      case 'D': return '♦';
-      case 'C': return '♣';
-    }
-  }
-
-  private isRedSuit(suit: SuitChar): boolean {
-    return suit === 'H' || suit === 'D';
   }
 
   private prettyPlayer(player: Player): string {
