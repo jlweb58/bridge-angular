@@ -194,30 +194,7 @@ export class HandGenerationPdfService {
       margin: [0, 1, 0, 3],
     };
   }
-
-  private suitCell(suit: SuitChar, cards: CardCode[]): Content {
-    const ranks = this.suitRanks(cards, suit) || '—';
-
-    return {
-      width: 'auto',
-      columns: [
-        {
-          width: 16,
-          svg: this.suitSvg(suit),
-          fit: [14, 14],
-          margin: [0, 0, 0, 0],
-        },
-        {
-          width: 'auto',
-          text: ranks,
-          style: 'cardText',
-        },
-      ],
-      columnGap: 4,
-
-    } as Content;
-  }
-
+  
   private suitSvg(suit: SuitChar): string {
     const fill = suit === 'H' || suit === 'D' ? '#b91c1c' : '#000000';
 
