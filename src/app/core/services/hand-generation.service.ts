@@ -26,6 +26,8 @@ export interface HandGenerationRequest {
 }
 
 export interface GeneratedHandPair {
+  dealer: Player;
+  vulnerability: string;
   WEST: CardCode[];
   EAST: CardCode[];
 }

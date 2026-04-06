@@ -35,9 +35,26 @@ export class HandGenerationPdfService {
         unbreakable: true,
         stack: [
           {
-            text: `Hand pair ${index + 1}`,
-            style: 'pairTitle',
-            margin: [0, index === 0 ? 0 : 12, 0, 6],
+            columns: [
+              {
+                width: 'auto',
+                text: `Hand ${index + 1}`,
+                style: 'pairTitle',
+              },
+              {
+                width: '*',
+                text: [
+                  { text: 'Dealer: ', italics: true, bold: false },
+                  { text: this.prettyPlayer(pair.dealer), italics: true, bold: false },
+                  { text: '   Vul: ', italics: true, bold: false },
+                  { text: pair.vulnerability, italics: true, bold: false },
+                ],
+                margin: [40, 0, 0, 0],
+                noWrap: true,
+              },
+            ],
+            columnGap: 10,
+            margin: [0, index === 0 ? 0 : 12, 0, 4],
           },
           this.buildHandBlock(pair[player]),
         ],
@@ -109,20 +126,23 @@ export class HandGenerationPdfService {
     const handCards = cards ?? [];
 
     return {
-      columns: [
-        this.suitCell('S', handCards),
-        this.suitCell('H', handCards),
-        this.suitCell('D', handCards),
-        this.suitCell('C', handCards),
+      stack: [
+        {
+          columns: [
+            this.suitCell('S', handCards),
+            this.suitCell('H', handCards),
+            this.suitCell('D', handCards),
+            this.suitCell('C', handCards),
+          ],
+          columnGap: 14,
+        },
       ],
-      columnGap: 10,
       margin: [0, 0, 0, 6],
     };
   }
 
-  private suitCell(suit: SuitChar, cards: CardCode[]): Content {
+  private suitLine(suit: SuitChar, cards: CardCode[]): Content {
     return {
-      width: '*',
       columns: [
         {
           width: 16,
@@ -138,6 +158,27 @@ export class HandGenerationPdfService {
       ],
       columnGap: 4,
       margin: [0, 1, 0, 3],
+    };
+  }
+  private suitCell(suit: SuitChar, cards: CardCode[]): Content {
+    const ranks = this.suitRanks(cards, suit) || '—';
+
+    return {
+      width: 'auto',
+      columns: [
+        {
+          width: 16,
+          svg: this.suitSvg(suit),
+          fit: [14, 14],
+          margin: [0, 0, 0, 0],
+        },
+        {
+          width: 'auto',
+          text: ranks,
+          style: 'cardText',
+        },
+      ],
+      columnGap: 4,
 
     } as Content;
   }

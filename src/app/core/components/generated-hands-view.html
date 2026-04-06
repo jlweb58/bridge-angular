@@ -3,6 +3,7 @@
     <section class="pair-card">
       <header class="pair-header">
         <h3>Hand {{ $index + 1 }}</h3>
+        <span class="dealer-vulnerability">Dealer: {{ pair.dealer | titlecase }}, Vulnerable: {{ pair.vulnerability }}</span>
       </header>
 
       <div class="pair-grid">
