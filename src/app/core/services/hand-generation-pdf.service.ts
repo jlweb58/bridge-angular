@@ -24,42 +24,57 @@ export class HandGenerationPdfService {
   private readonly rankOrder = 'AKQJT98765432';
   private pdfReady = false;
 
+  exportBothPdfs(hands: GeneratedHandPair[], batchId?: string): void {
+    const resolvedBatchId = batchId ?? this.createBatchId();
+    this.exportPlayerPdf('WEST', hands, { batchId: resolvedBatchId });
+    this.exportPlayerPdf('EAST', hands, { batchId: resolvedBatchId });
+  }
+
+  private ensurePdfMakeReady(): void {
+    if (this.pdfReady) return;
+
+    const pdfMakeLike = pdfMake as PdfMakeLike;
+    pdfMakeLike.vfs ??= pdfFonts as Record<string, string>;
+
+    this.pdfReady = true;
+  }
+
+
   exportPlayerPdf(player: Player, hands: GeneratedHandPair[], options: PdfExportOptions = {}): void {
     this.ensurePdfMakeReady();
 
     const batchId = options.batchId ?? this.createBatchId();
     const filename = `${this.prettyPlayer(player)}_${batchId}.pdf`;
 
-    const handSections: Content[] = hands.flatMap((pair, index): Content[] => [
-      {
-        unbreakable: true,
-        stack: [
-          {
-            columns: [
+    const handBlocks = hands.map((pair, index) => this.buildHandSection(pair, index, player));
+    const pages: Content[] = [];
+
+    for (let i = 0; i < handBlocks.length; i += 10) {
+      const pageHands = handBlocks.slice(i, i + 10);
+      const leftColumn = pageHands.slice(0, 5);
+      const rightColumn = pageHands.slice(5, 10);
+
+      pages.push({
+        table: {
+          widths: ['*', '*'],
+          body: [
+            [
               {
-                width: 'auto',
-                text: `Hand ${index + 1}`,
-                style: 'pairTitle',
+                stack: leftColumn,
+                margin: [0, 0, 9, 0],
+
               },
               {
-                width: '*',
-                text: [
-                  { text: 'Dealer: ', italics: true, bold: false },
-                  { text: this.prettyPlayer(pair.dealer), italics: true, bold: false },
-                  { text: '   Vul: ', italics: true, bold: false },
-                  { text: pair.vulnerability, italics: true, bold: false },
-                ],
-                margin: [40, 0, 0, 0],
-                noWrap: true,
+                stack: rightColumn,
+                margin: [9, 0, 0, 0],
               },
             ],
-            columnGap: 10,
-            margin: [0, index === 0 ? 0 : 12, 0, 4],
-          },
-          this.buildHandBlock(pair[player]),
-        ],
-      },
-    ]);
+          ],
+        },
+         layout: 'noBorders',
+        pageBreak: i === 0 ? undefined : 'before',
+      });
+    }
 
     const docDefinition: TDocumentDefinitions = {
       pageSize: 'A4',
@@ -72,7 +87,7 @@ export class HandGenerationPdfService {
         { text: `${this.prettyPlayer(player)} hand practice`, style: 'title' },
         { text: `Batch ${batchId}`, style: 'subtitle' },
         { text: ' ', margin: [0, 0, 0, 4] },
-        ...handSections,
+        ...pages,
       ] as Content[],
       styles: {
         title: {
@@ -87,6 +102,11 @@ export class HandGenerationPdfService {
         pairTitle: {
           fontSize: 13,
           bold: true,
+        },
+        handMeta: {
+          fontSize: 11,
+          italics: true,
+          bold: false,
         },
         suitSymbol: {
           fontSize: 13,
@@ -107,19 +127,36 @@ export class HandGenerationPdfService {
     pdfMake.createPdf(docDefinition).download(filename);
   }
 
-  exportBothPdfs(hands: GeneratedHandPair[], batchId?: string): void {
-    const resolvedBatchId = batchId ?? this.createBatchId();
-    this.exportPlayerPdf('WEST', hands, { batchId: resolvedBatchId });
-    this.exportPlayerPdf('EAST', hands, { batchId: resolvedBatchId });
-  }
+  private buildHandSection(pair: GeneratedHandPair, index: number, player: Player): Content {
+    return {
+      unbreakable: true,
 
-  private ensurePdfMakeReady(): void {
-    if (this.pdfReady) return;
-
-    const pdfMakeLike = pdfMake as PdfMakeLike;
-    pdfMakeLike.vfs ??= pdfFonts as Record<string, string>;
-
-    this.pdfReady = true;
+      stack: [
+        {
+          columns: [
+            {
+              width: 'auto',
+              text: `Hand ${index + 1}`,
+              style: 'pairTitle',
+            },
+            {
+              width: '*',
+              text: [
+                { text: 'Dealer: ', style: 'handMeta' },
+                { text: this.prettyPlayer(pair.dealer), style: 'handMeta' },
+                { text: '   Vul: ', style: 'handMeta' },
+                { text: pair.vulnerability, style: 'handMeta' },
+              ],
+              margin: [40, 0, 0, 0],
+              noWrap: true,
+            },
+          ],
+          columnGap: 10,
+          margin: [0, 0, 0, 4],
+        },
+        this.buildHandBlock(pair[player]),
+      ],
+    };
   }
 
   private buildHandBlock(cards: CardCode[] | undefined): Content {
@@ -127,21 +164,18 @@ export class HandGenerationPdfService {
 
     return {
       stack: [
-        {
-          columns: [
-            this.suitCell('S', handCards),
-            this.suitCell('H', handCards),
-            this.suitCell('D', handCards),
-            this.suitCell('C', handCards),
-          ],
-          columnGap: 14,
-        },
+        this.suitLine('S', handCards),
+        this.suitLine('H', handCards),
+        this.suitLine('D', handCards),
+        this.suitLine('C', handCards),
       ],
       margin: [0, 0, 0, 6],
     };
   }
 
   private suitLine(suit: SuitChar, cards: CardCode[]): Content {
+    const ranks = this.suitRanks(cards, suit) || '—';
+
     return {
       columns: [
         {
@@ -152,7 +186,7 @@ export class HandGenerationPdfService {
         },
         {
           width: '*',
-          text: this.suitRanks(cards, suit) || '—',
+          text: ranks,
           style: 'cardText',
         },
       ],
@@ -160,6 +194,7 @@ export class HandGenerationPdfService {
       margin: [0, 1, 0, 3],
     };
   }
+
   private suitCell(suit: SuitChar, cards: CardCode[]): Content {
     const ranks = this.suitRanks(cards, suit) || '—';
 
