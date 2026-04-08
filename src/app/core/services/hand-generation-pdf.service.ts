@@ -194,7 +194,7 @@ export class HandGenerationPdfService {
       margin: [0, 1, 0, 3],
     };
   }
-  
+
   private suitSvg(suit: SuitChar): string {
     const fill = suit === 'H' || suit === 'D' ? '#b91c1c' : '#000000';
 

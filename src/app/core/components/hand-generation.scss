@@ -52,7 +52,7 @@
 
 .generation-row {
   display: grid;
-  grid-template-columns: minmax(220px, 320px) auto;
+  grid-template-columns: minmax(220px, 320px) minmax(220px, 320px) auto;
   justify-content: center;
   align-items: end;
   gap: 14px;
@@ -63,8 +63,16 @@
   justify-content: center;
 }
 
-.hands-count-field {
+.hands-count-field,
+.evaluator-field {
   justify-items: center;
+}
+
+.evaluator-field select {
+  padding: 8px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 8px;
+  background: #fff;
 }
 
 .compact {

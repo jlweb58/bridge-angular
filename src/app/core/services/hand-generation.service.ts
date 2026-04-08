@@ -20,9 +20,13 @@ interface HandConstraint {
   };
 }
 
+export type HandEvaluator = 'standard' | 'kaplan-rubens' | 'bergen';
+
+
 export interface HandGenerationRequest {
   parameters: Record<Player, HandConstraint>;
   numberOfHands: number;
+  evaluator: HandEvaluator;
 }
 
 export interface GeneratedHandPair {

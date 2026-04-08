@@ -4,7 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
 import { type SuitChar } from '../models/cards';
-import { HandGenerationService, type HandGenerationRequest, type GeneratedHandPair } from '../services/hand-generation.service';
+import {
+  HandGenerationService,
+  type HandGenerationRequest,
+  type GeneratedHandPair,
+  HandEvaluator
+} from '../services/hand-generation.service';
 import { GeneratedHandsViewComponent } from './generated-hands-view';
 import {HandGenerationPdfService} from '../services/hand-generation-pdf.service';
 
@@ -13,6 +18,11 @@ type Player = 'WEST' | 'EAST';
 interface Range {
   min: number;
   max: number;
+}
+
+interface EvaluatorOption {
+  label: string;
+  value: HandEvaluator;
 }
 
 @Component({
@@ -32,6 +42,11 @@ export class HandGeneration {
   protected readonly results = signal<GeneratedHandPair[]>([]);
 
   protected readonly numberOfHands = signal(10);
+  protected readonly evaluatorOptions: EvaluatorOption[] = [
+    { label: 'Standard', value: 'standard' },
+    { label: 'Kaplan-Rubens', value: 'kaplan-rubens' },
+    { label: 'Bergen', value: 'bergen' },
+  ];  protected readonly selectedEvaluator = signal<HandEvaluator>('standard');
 
   protected readonly westMinPoints = signal(15);
   protected readonly westMaxPoints = signal(17);
@@ -73,6 +88,7 @@ export class HandGeneration {
         },
       },
       numberOfHands: this.numberOfHands(),
+      evaluator: this.selectedEvaluator(),
     };
 
     this.isLoading.set(true);

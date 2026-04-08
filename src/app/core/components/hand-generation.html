@@ -19,6 +19,15 @@
           />
         </label>
 
+        <label class="field evaluator-field">
+          <span>Hand evaluator</span>
+          <select [ngModel]="selectedEvaluator()" (ngModelChange)="selectedEvaluator.set($event)">
+            @for (option of evaluatorOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </label>
+
         <div class="actions generation-actions">
           <button type="button" class="primary" (click)="generate()" [disabled]="isLoading()">
             {{ isLoading() ? 'Generating…' : 'Generate' }}
