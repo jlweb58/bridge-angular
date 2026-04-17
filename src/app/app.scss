@@ -75,6 +75,30 @@
   padding: 20px 22px;
 }
 
+.mobile-menu-panel {
+  --mat-menu-container-color: #f6f9f4;
+}
+
+:global(.mat-mdc-menu-panel) {
+  background: #f6f9f4;
+}
+
+.menu-group {
+  display: grid;
+  padding: 8px 0;
+}
+
+.menu-group-title {
+  padding: 10px 16px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #336e34;
+  background-color: #ecc20c;
+  opacity: 0.85;
+}
+
 @media (max-width: 720px) {
   .page {
     margin: 0 auto;

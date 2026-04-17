@@ -8,8 +8,7 @@
       <mat-icon aria-hidden="true">menu</mat-icon>
     </button>
 
-    <span class="brand" >Bridge Tools</span>
-
+    <span class="brand">Bridge Tools</span>
 
     <span class="spacer"></span>
 
@@ -24,33 +23,37 @@
     </nav>
   </mat-toolbar>
 
-  <mat-menu #mobileMenu="matMenu" class="mobile-menu-panel">
-    <button mat-menu-item disabled class="menu-section">Tools</button>
-    <a mat-menu-item routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
-      Analyzer
-    </a>
-    <a mat-menu-item routerLink="/hand-generation" routerLinkActive="active-link">
-      Generate Hands
-    </a>
+  <mat-menu #mobileMenu="matMenu">
+    <div class="menu-group">
+      <div class="menu-group-title">Tools</div>
+      <a mat-menu-item routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
+        Analyzer
+      </a>
+      <a mat-menu-item routerLink="/hand-generation" routerLinkActive="active-link">
+        Generate Hands
+      </a>
+    </div>
 
     <mat-divider></mat-divider>
 
-    <button mat-menu-item disabled class="menu-section">More</button>
-    <a mat-menu-item routerLink="/faq" routerLinkActive="active-link">
-      FAQ
-    </a>
-    <a mat-menu-item routerLink="/about" routerLinkActive="active-link">
-      About
-    </a>
-    <a mat-menu-item routerLink="/links" routerLinkActive="active-link">
-      Links
-    </a>
-    <a mat-menu-item routerLink="/privacy" routerLinkActive="active-link">
-      Privacy
-    </a>
-    <a mat-menu-item routerLink="/contact" routerLinkActive="active-link">
-      Contact &amp; Legal
-    </a>
+    <div class="menu-group">
+      <div class="menu-group-title">More</div>
+      <a mat-menu-item routerLink="/faq" routerLinkActive="active-link">
+        FAQ
+      </a>
+      <a mat-menu-item routerLink="/about" routerLinkActive="active-link">
+        About
+      </a>
+      <a mat-menu-item routerLink="/links" routerLinkActive="active-link">
+        Links
+      </a>
+      <a mat-menu-item routerLink="/privacy" routerLinkActive="active-link">
+        Privacy
+      </a>
+      <a mat-menu-item routerLink="/contact" routerLinkActive="active-link">
+        Contact &amp; Legal
+      </a>
+    </div>
   </mat-menu>
 
   <mat-card class="content-card">
@@ -67,5 +70,4 @@
       </footer>
     </mat-card-content>
   </mat-card>
-
 </div>
