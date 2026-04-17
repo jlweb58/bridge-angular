@@ -120,3 +120,42 @@ mat-form-field {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+
+@media (max-width: 720px) {
+  .form {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .summary-2col {
+    grid-template-columns: 1fr;
+  }
+
+  .row,
+  .actions {
+    align-items: stretch;
+  }
+
+  .actions {
+    gap: 10px;
+  }
+
+  .actions button,
+  .actions mat-form-field {
+    width: 100%;
+  }
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  /* If the contract selection is in a row, let it stack naturally */
+  .row > * {
+    min-width: 0;
+  }
+
+  /* Prevent any labels/content from feeling too cramped */
+  .panel-card {
+    margin: 12px 0;
+  }
+}
