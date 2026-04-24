@@ -28,6 +28,7 @@ export class HandGenerationPdfService {
     const resolvedBatchId = batchId ?? this.createBatchId();
     this.exportPlayerPdf('WEST', hands, { batchId: resolvedBatchId });
     this.exportPlayerPdf('EAST', hands, { batchId: resolvedBatchId });
+    this.exportOverviewPdf(hands, { batchId: resolvedBatchId });
   }
 
   private ensurePdfMakeReady(): void {
@@ -39,6 +40,59 @@ export class HandGenerationPdfService {
     this.pdfReady = true;
   }
 
+  exportOverviewPdf(hands: GeneratedHandPair[], options: PdfExportOptions = {}): void {
+    this.ensurePdfMakeReady();
+
+    const batchId = options.batchId ?? this.createBatchId();
+    const filename = `Overview_${batchId}.pdf`;
+
+    const overviewBlocks = hands.map((pair, index) => this.buildOverviewHandSection(pair, index));
+
+    const docDefinition: TDocumentDefinitions = {
+      pageSize: 'A4',
+      pageMargins: [28, 30, 28, 30] as Margins,
+      defaultStyle: {
+        fontSize: 11,
+        lineHeight: 1.2,
+      },
+      content: [
+        { text: 'Hand overview', style: 'title' },
+        { text: `Batch ${batchId}`, style: 'subtitle' },
+        { text: ' ', margin: [0, 0, 0, 4] },
+        ...overviewBlocks,
+      ] as Content[],
+      styles: {
+        title: {
+          fontSize: 18,
+          bold: true,
+        },
+        subtitle: {
+          fontSize: 10,
+          color: '#555555',
+          margin: [0, 3, 0, 0],
+        },
+        pairTitle: {
+          fontSize: 13,
+          bold: true,
+        },
+        handMeta: {
+          fontSize: 11,
+          italics: true,
+          bold: false,
+        },
+        columnTitle: {
+          bold: true,
+          margin: [0, 0, 0, 4],
+        },
+        cardText: {
+          fontSize: 11,
+          margin: [0, 0, 0, 0],
+        },
+      },
+    };
+
+    pdfMake.createPdf(docDefinition).download(filename);
+  }
 
   exportPlayerPdf(player: Player, hands: GeneratedHandPair[], options: PdfExportOptions = {}): void {
     this.ensurePdfMakeReady();
@@ -238,5 +292,117 @@ export class HandGenerationPdfService {
 
   private createBatchId(): string {
     return Math.random().toString(36).slice(2, 7).toUpperCase();
+  }
+
+  private buildOverviewHandSection(pair: GeneratedHandPair, index: number): Content {
+    const westRows: Content[] = this.buildSuitRows(pair.WEST);
+    const eastRows: Content[] = this.buildSuitRows(pair.EAST);
+    const contractRows: Content[] = this.buildContractRows(pair);
+
+    const stackItems: Content[] = [
+        {
+          columns: [
+            { width: 'auto', text: `Hand ${index + 1}`, style: 'pairTitle' },
+            {
+              width: '*',
+              text: [
+                { text: 'Dealer: ', style: 'handMeta' },
+                { text: this.prettyPlayer(pair.dealer), style: 'handMeta' },
+                { text: '   Vul: ', style: 'handMeta' },
+                { text: pair.vulnerability, style: 'handMeta' },
+              ],
+              margin: [40, 0, 0, 0],
+              noWrap: true,
+            },
+          ],
+          margin: [0, 0, 0, 6],
+          columnGap: 10,
+        },
+        {
+          table: {
+            widths: ['*', '*'],
+            body: [
+              [
+                { stack: [{ text: 'West', style: 'columnTitle' }, ...westRows], margin: [0, 0, 8, 0] },
+                { stack: [{ text: 'East', style: 'columnTitle' }, ...eastRows], margin: [8, 0, 0, 0] },
+              ],
+            ],
+          },
+          layout: 'noBorders',
+        },
+      ];
+        if (contractRows.length > 0) {
+          stackItems.push(
+            {text: 'Contract results', style: 'columnTitle', margin: [0, 6, 0, 2]},
+            ...contractRows,
+          );
+        }
+        stackItems.push({ text: ' ', margin: [0, 0, 0, 6] });
+
+    return {
+      unbreakable: true,
+      stack: stackItems,
+      margin: [0, 0, 0, 8],
+    };
+  }
+
+  private buildSuitRows(cards: CardCode[] | undefined): Content[] {
+    const handCards = cards ?? [];
+    const suits: SuitChar[] = ['S', 'H', 'D', 'C'];
+
+    return suits.map((suit) => ({
+      columns: [
+        {
+          width: 16,
+          svg: this.suitSvg(suit),
+          fit: [14, 14],
+          margin: [0, 0, 0, 0],
+        },
+        {
+          width: '*',
+          text: this.suitRanks(handCards, suit) || '—',
+          style: 'cardText',
+        },
+      ],
+      columnGap: 4,
+      margin: [0, 0, 0, 2],
+    }));
+  }
+
+  private buildContractRows(pair: GeneratedHandPair): Content[] {
+    const rows = pair.contractScores ?? [];
+
+    return rows.map((score): Content => ({
+      columns: [
+        { width: 42, text: `#${score.rank}`, bold: true },
+        {
+          width: 72,
+          columns: [
+            { width: 'auto', text: `${score.contract.level}` },
+            this.contractDenominationCell(score.contract.denomination),
+          ],
+          columnGap: 6,
+        },
+        { width: 'auto', text: `${score.successProbability}%`, bold: true, color: '#166534' },
+      ],
+      columnGap: 8,
+      margin: [0, 0, 0, 2],
+    }));
+  }
+
+  private contractDenominationCell(denomination: string): Content {
+    switch (denomination) {
+      case 'SPADES':
+        return { svg: this.suitSvg('S'), fit: [10, 10], margin: [0, 1, 0, 0] };
+      case 'HEARTS':
+        return { svg: this.suitSvg('H'), fit: [10, 10], margin: [0, 1, 0, 0] };
+      case 'DIAMONDS':
+        return { svg: this.suitSvg('D'), fit: [10, 10], margin: [0, 1, 0, 0] };
+      case 'CLUBS':
+        return { svg: this.suitSvg('C'), fit: [10, 10], margin: [0, 1, 0, 0] };
+      case 'NOTRUMP':
+      default:
+        return { text: 'NT' };
+    }
   }
 }
