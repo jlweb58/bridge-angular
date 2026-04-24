@@ -37,6 +37,28 @@
           </div>
         </div>
       </div>
+      @if ((pair.contractScores?.length ?? 0) > 0) {
+        <div class="pair-contract-scores">
+          <div class="pair-contract-title">Contract results</div>
+          <div class="pair-contract-list">
+            @for (score of pair.contractScores ?? []; track $index) {
+              <div class="pair-contract-row">
+                <span class="pair-contract-rank">#{{ score.rank }}</span>
+                <span class="pair-contract-name">
+                  {{ score.contract.level }}
+                  <span
+                    class="pair-contract-denomination"
+                    [class.red-suit]="isRedDenomination(score.contract.denomination)"
+                  >
+                    {{ contractDenominationLabel(score.contract.denomination) }}
+                  </span>
+                </span>
+                <span class="pair-contract-pct">{{ score.successProbability }}%</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
     </section>
   }
 </div>

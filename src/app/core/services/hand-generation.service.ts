@@ -5,9 +5,9 @@ import { catchError, type Observable, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { type CardCode, type SuitChar } from '../models/cards';
 
-type Player = 'WEST' | 'EAST';
+export type Player = 'WEST' | 'EAST';
 
-interface Range {
+export interface Range {
   min: number;
   max: number;
 }
@@ -21,12 +21,24 @@ interface HandConstraint {
 }
 
 export type HandEvaluator = 'standard' | 'kaplan-rubens' | 'bergen';
+export type ContractDenomination = 'CLUBS' | 'DIAMONDS' | 'HEARTS' | 'SPADES' | 'NOTRUMP';
 
+export interface ContractSuggestion {
+  level: number;
+  denomination: ContractDenomination;
+}
+
+export interface ContractScore {
+  contract: ContractSuggestion;
+  successProbability: number;
+  rank: number;
+}
 
 export interface HandGenerationRequest {
   parameters: Record<Player, HandConstraint>;
   numberOfHands: number;
   evaluator: HandEvaluator;
+  contractSuggestions?: ContractSuggestion[];
 }
 
 export interface GeneratedHandPair {
@@ -34,6 +46,7 @@ export interface GeneratedHandPair {
   vulnerability: string;
   WEST: CardCode[];
   EAST: CardCode[];
+  contractScores?: ContractScore[];
 }
 
 export interface HandGenerationResponse {

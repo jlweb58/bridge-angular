@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, input } from '@angular/core';
 
 import type { CardCode, SuitChar } from '../models/cards';
-import type { GeneratedHandPair } from '../services/hand-generation.service';
+import type {ContractDenomination, ContractScore, GeneratedHandPair} from '../services/hand-generation.service';
 
 @Component({
   selector: 'app-generated-hands-view',
@@ -42,4 +42,19 @@ export class GeneratedHandsViewComponent {
       .map((card) => card[1])
       .join('') || '—';
   }
+
+  protected contractDenominationLabel(denomination: ContractDenomination): string {
+    switch (denomination) {
+      case 'SPADES': return '♠';
+      case 'HEARTS': return '♥';
+      case 'DIAMONDS': return '♦';
+      case 'CLUBS': return '♣';
+      case 'NOTRUMP': return 'NT';
+    }
+  }
+
+  protected isRedDenomination(denomination: ContractDenomination): boolean {
+    return denomination === 'HEARTS' || denomination === 'DIAMONDS';
+  }
+
 }

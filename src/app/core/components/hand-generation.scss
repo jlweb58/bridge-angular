@@ -68,11 +68,29 @@
   justify-items: center;
 }
 
-.evaluator-field select {
+.evaluator-field select,
+.contract-row select {
   padding: 8px 10px;
   border: 1px solid rgba(0, 0, 0, 0.18);
   border-radius: 8px;
   background: #fff;
+}
+
+.contract-hint {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant, #4b5563);
+}
+
+.contract-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.contract-row {
+  display: grid;
+  grid-template-columns: minmax(100px, 140px) minmax(180px, 240px) auto;
+  gap: 10px;
+  align-items: end;
 }
 
 .compact {
@@ -125,6 +143,32 @@
   color: #1976d2;
 }
 
+.generate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+.elapsed-time {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.9;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .primary:disabled,
 .secondary:disabled {
   opacity: 0.7;
@@ -166,6 +210,38 @@
   align-items: baseline;
 }
 
+.contract-scores {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding-top: 12px;
+}
+
+.contract-scores h3 {
+  margin: 0;
+}
+
+.score-list {
+  display: grid;
+  gap: 6px;
+}
+
+.score-row {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.score-rank {
+  font-weight: 700;
+}
+
+.score-probability {
+  font-weight: 700;
+  color: #166534;
+}
+
 .result-list {
   display: grid;
   gap: 16px;
@@ -176,7 +252,8 @@
     grid-template-columns: 1fr;
   }
 
-  .generation-row {
+  .generation-row,
+  .contract-row {
     grid-template-columns: 1fr;
   }
 }

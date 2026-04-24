@@ -29,10 +29,71 @@
         </label>
 
         <div class="actions generation-actions">
-          <button type="button" class="primary" (click)="generate()" [disabled]="isLoading()">
-            {{ isLoading() ? 'Generating…' : 'Generate' }}
+          <button type="button" class="primary generate-btn" (click)="generate()" [disabled]="isLoading()">
+            @if (isLoading()) {
+              <span class="btn-spinner" aria-hidden="true"></span>
+              <span>Generating…</span>
+              <span class="elapsed-time">{{ elapsedSeconds() }}s</span>
+            } @else {
+              <span>Generate</span>
+            }
           </button>
         </div>
+      </div>
+
+      <div class="card">
+        <h2>Contract suggestions (optional)</h2>
+        <p class="contract-hint">
+          Add up to 4 contracts to estimate success probability. Enabling this may make generation slower.
+        </p>
+
+        <div class="contract-grid">
+          @for (row of contractSuggestions(); track $index) {
+            <div class="contract-row">
+              <label class="field inline">
+                <span>Level</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="7"
+                  [ngModel]="row.level"
+                  (ngModelChange)="setContractLevel($index, $event)"
+                />
+              </label>
+
+              <label class="field inline">
+                <span>Denomination</span>
+                <select
+                  [ngModel]="row.denomination"
+                  (ngModelChange)="setContractDenomination($index, $event)"
+                >
+                  <option value="">Select</option>
+                  @for (denomination of denominationOptions; track denomination) {
+                    <option [value]="denomination">{{ denomination }}</option>
+                  }
+                </select>
+              </label>
+
+              <button
+                type="button"
+                class="secondary"
+                (click)="removeContractSuggestion($index)"
+                [disabled]="contractSuggestions().length === 1"
+              >
+                Remove
+              </button>
+            </div>
+          }
+        </div>
+
+        <button
+          type="button"
+          class="secondary"
+          (click)="addContractSuggestion()"
+          [disabled]="contractSuggestions().length >= 4"
+        >
+          Add contract
+        </button>
       </div>
 
       <div class="grid grid-2">
@@ -149,4 +210,5 @@
       <app-generated-hands-view [hands]="results()" />
     </section>
   }
+
 </div>
