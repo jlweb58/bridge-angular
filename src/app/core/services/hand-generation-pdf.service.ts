@@ -52,8 +52,8 @@ export class HandGenerationPdfService {
       pageSize: 'A4',
       pageMargins: [28, 30, 28, 30] as Margins,
       defaultStyle: {
-        fontSize: 11,
-        lineHeight: 1.2,
+        fontSize: 10,
+        lineHeight: 1.15,
       },
       content: [
         { text: 'Hand overview', style: 'title' },
@@ -63,29 +63,30 @@ export class HandGenerationPdfService {
       ] as Content[],
       styles: {
         title: {
-          fontSize: 18,
+          fontSize: 17,
           bold: true,
         },
         subtitle: {
-          fontSize: 10,
+          fontSize: 9,
           color: '#555555',
           margin: [0, 3, 0, 0],
         },
         pairTitle: {
-          fontSize: 13,
+          fontSize: 12,
           bold: true,
         },
         handMeta: {
-          fontSize: 11,
+          fontSize: 10,
           italics: true,
           bold: false,
         },
         columnTitle: {
+          fontSize: 10,
           bold: true,
           margin: [0, 0, 0, 4],
         },
         cardText: {
-          fontSize: 11,
+          fontSize: 10,
           margin: [0, 0, 0, 0],
         },
       },
@@ -295,78 +296,86 @@ export class HandGenerationPdfService {
   }
 
   private buildOverviewHandSection(pair: GeneratedHandPair, index: number): Content {
-    const westRows: Content[] = this.buildSuitRows(pair.WEST);
-    const eastRows: Content[] = this.buildSuitRows(pair.EAST);
+    const westLine: Content = this.buildHandOneLine(pair.WEST);
+    const eastLine: Content = this.buildHandOneLine(pair.EAST);
     const contractRows: Content[] = this.buildContractRows(pair);
 
     const stackItems: Content[] = [
-        {
-          columns: [
-            { width: 'auto', text: `Hand ${index + 1}`, style: 'pairTitle' },
-            {
-              width: '*',
-              text: [
-                { text: 'Dealer: ', style: 'handMeta' },
-                { text: this.prettyPlayer(pair.dealer), style: 'handMeta' },
-                { text: '   Vul: ', style: 'handMeta' },
-                { text: pair.vulnerability, style: 'handMeta' },
-              ],
-              margin: [40, 0, 0, 0],
-              noWrap: true,
-            },
-          ],
-          margin: [0, 0, 0, 6],
-          columnGap: 10,
-        },
-        {
-          table: {
-            widths: ['*', '*'],
-            body: [
-              [
-                { stack: [{ text: 'West', style: 'columnTitle' }, ...westRows], margin: [0, 0, 8, 0] },
-                { stack: [{ text: 'East', style: 'columnTitle' }, ...eastRows], margin: [8, 0, 0, 0] },
-              ],
+      {
+        columns: [
+          { width: 'auto', text: `Hand ${index + 1}`, style: 'pairTitle' },
+          {
+            width: '*',
+            text: [
+              { text: 'Dealer: ', style: 'handMeta' },
+              { text: this.prettyPlayer(pair.dealer), style: 'handMeta' },
+              { text: '   Vul: ', style: 'handMeta' },
+              { text: pair.vulnerability, style: 'handMeta' },
             ],
+            margin: [40, 0, 0, 0],
+            noWrap: true,
           },
-          layout: 'noBorders',
+        ],
+        margin: [0, 0, 0, 6],
+        columnGap: 10,
+      },
+      {
+        table: {
+          widths: ['*', '*'],
+          body: [
+            [
+              { stack: [{ text: 'West', style: 'columnTitle' }, westLine], margin: [0, 0, 8, 0] },
+              { stack: [{ text: 'East', style: 'columnTitle' }, eastLine], margin: [8, 0, 0, 0] },
+            ],
+          ],
         },
-      ];
-        if (contractRows.length > 0) {
-          stackItems.push(
-            {text: 'Contract results', style: 'columnTitle', margin: [0, 6, 0, 2]},
-            ...contractRows,
-          );
-        }
-        stackItems.push({ text: ' ', margin: [0, 0, 0, 6] });
+        layout: 'noBorders',
+      },
+    ];
+
+    if (contractRows.length > 0) {
+      stackItems.push(
+        { text: 'Contract results', style: 'columnTitle', margin: [0, 6, 0, 2] },
+        ...contractRows,
+      );
+    }
+
 
     return {
       unbreakable: true,
-      stack: stackItems,
-      margin: [0, 0, 0, 8],
+      stack: [
+        ...stackItems,
+        {
+          canvas: [
+            { type: 'line', x1: 0, y1: 0, x2: 535, y2: 0, lineWidth: 0.4, lineColor: '#d1d5db' },
+          ],
+          margin: [0, 3, 0, 4],
+        },
+      ],
+      margin: [0, 0, 0, 2],
     };
   }
 
-  private buildSuitRows(cards: CardCode[] | undefined): Content[] {
+  private buildHandOneLine(cards: CardCode[] | undefined): Content {
     const handCards = cards ?? [];
-    const suits: SuitChar[] = ['S', 'H', 'D', 'C'];
 
-    return suits.map((suit) => ({
+    return {
       columns: [
-        {
-          width: 16,
-          svg: this.suitSvg(suit),
-          fit: [14, 14],
-          margin: [0, 0, 0, 0],
-        },
-        {
-          width: '*',
-          text: this.suitRanks(handCards, suit) || '—',
-          style: 'cardText',
-        },
+        { width: 12, svg: this.suitSvg('S'), fit: [10, 10], margin: [0, 1, 1, 0] },
+        { width: 'auto', text: this.suitRanks(handCards, 'S') || '—', style: 'cardText', margin: [0, 0, 6, 0] },
+
+        { width: 12, svg: this.suitSvg('H'), fit: [10, 10], margin: [0, 1, 1, 0] },
+        { width: 'auto', text: this.suitRanks(handCards, 'H') || '—', style: 'cardText', margin: [0, 0, 6, 0] },
+
+        { width: 12, svg: this.suitSvg('D'), fit: [10, 10], margin: [0, 1, 1, 0] },
+        { width: 'auto', text: this.suitRanks(handCards, 'D') || '—', style: 'cardText', margin: [0, 0, 6, 0] },
+
+        { width: 12, svg: this.suitSvg('C'), fit: [10, 10], margin: [0, 1, 1, 0] },
+        { width: '*', text: this.suitRanks(handCards, 'C') || '—', style: 'cardText' },
       ],
-      columnGap: 4,
+      columnGap: 2,
       margin: [0, 0, 0, 2],
-    }));
+    };
   }
 
   private buildContractRows(pair: GeneratedHandPair): Content[] {
