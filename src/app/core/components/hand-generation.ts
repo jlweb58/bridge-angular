@@ -16,6 +16,7 @@ import {
 } from '../services/hand-generation.service';
 import { GeneratedHandsViewComponent } from './generated-hands-view';
 import {HandGenerationPdfService} from '../services/hand-generation-pdf.service';
+import {MatTooltip} from '@angular/material/tooltip';
 
 interface EvaluatorOption {
   label: string;
@@ -31,7 +32,7 @@ interface ContractInputRow {
 @Component({
   selector: 'app-hand-generation',
   standalone: true,
-  imports: [CommonModule, FormsModule, GeneratedHandsViewComponent],
+  imports: [CommonModule, FormsModule, GeneratedHandsViewComponent, MatTooltip],
   templateUrl: './hand-generation.html',
   styleUrl: './hand-generation.scss',
 })
@@ -230,6 +231,19 @@ export class HandGeneration {
   protected setSuitMax(player: Player, suit: SuitChar, value: string): void {
     const nextValue = this.parseNumber(value, 13);
     this.updateSuitRange(player, suit, { max: nextValue });
+  }
+
+  protected suitSymbol(suit: SuitChar): string {
+    switch (suit) {
+      case 'S': return '♠';
+      case 'H': return '♥';
+      case 'D': return '♦';
+      case 'C': return '♣';
+    }
+  }
+
+  protected isRedSuit(suit: SuitChar): boolean {
+    return suit === 'H' || suit === 'D';
   }
 
   private exportPlayer(player: Player): void {

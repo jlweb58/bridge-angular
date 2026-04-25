@@ -194,7 +194,15 @@
 }
 
 .suit-label {
+  font-size: 1.5rem;
   font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  transform: translateY(-2px);
+}
+
+.suit-label.red-suit {
+  color: #dc2626;
 }
 
 .results {

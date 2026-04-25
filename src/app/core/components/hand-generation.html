@@ -3,6 +3,8 @@
     <h1>Hand Generation</h1>
     <p class="subtitle">
       Generate one or more West/East hand pairs using point and suit-length constraints.
+      For each hand you can specify the minimum and maximum number of cards in each suit,
+      as well as the range of high-card points.
     </p>
   </header>
 
@@ -16,12 +18,14 @@
             min="1"
             [ngModel]="numberOfHands()"
             (ngModelChange)="numberOfHands.set($event)"
+            matTooltip="The default and recommended number of hand pairs is 10"
           />
         </label>
 
         <label class="field evaluator-field">
           <span>Hand evaluator</span>
-          <select [ngModel]="selectedEvaluator()" (ngModelChange)="selectedEvaluator.set($event)">
+          <select [ngModel]="selectedEvaluator()" (ngModelChange)="selectedEvaluator.set($event)"
+          matTooltip="You can customize the hand evaluator to suit your needs. The default evaluator is 'Standard' which is the typical 4-3-2-1 point count">
             @for (option of evaluatorOptions; track option.value) {
               <option [value]="option.value">{{ option.label }}</option>
             }
@@ -79,6 +83,7 @@
                 class="secondary"
                 (click)="handleContractSuggestionAction($index)"
                 [disabled]="!row.added && !isContractSuggestionComplete(row)"
+                matTooltip="Specify the contract for evaluation here, for example 4 SPADES. You can specify up to 4 contracts."
               >
                 {{ row.added ? 'Remove' : 'Add Contract' }}
               </button>
@@ -106,7 +111,9 @@
           <div class="suit-grid">
             @for (suit of suitChars; track suit) {
               <div class="suit-row">
-                <div class="suit-label">{{ suit }}</div>
+                <div class="suit-label" [class.red-suit]="isRedSuit(suit)">
+                  {{ suitSymbol(suit) }}
+                </div>
                 <label class="field inline">
                   <span>Min</span>
                   <input
@@ -149,7 +156,9 @@
           <div class="suit-grid">
             @for (suit of suitChars; track suit) {
               <div class="suit-row">
-                <div class="suit-label">{{ suit }}</div>
+                <div class="suit-label" [class.red-suit]="isRedSuit(suit)">
+                  {{ suitSymbol(suit) }}
+                </div>
                 <label class="field inline">
                   <span>Min</span>
                   <input
@@ -176,13 +185,16 @@
         </div>
       </div>
       <div class="export-actions">
-        <button type="button" class="secondary" (click)="exportWest()" [disabled]="results().length === 0 || isExporting()">
+        <button type="button" class="secondary" (click)="exportWest()" [disabled]="results().length === 0 || isExporting()"
+        matTooltip="Export only the West hand as a PDF">
           Export West PDF
         </button>
-        <button type="button" class="secondary" (click)="exportEast()" [disabled]="results().length === 0 || isExporting()">
+        <button type="button" class="secondary" (click)="exportEast()" [disabled]="results().length === 0 || isExporting()"
+        matTooltip="Export only the East hand as a PDF">
           Export East PDF
         </button>
-        <button type="button" class="secondary" (click)="exportBoth()" [disabled]="results().length === 0 || isExporting()">
+        <button type="button" class="secondary" (click)="exportBoth()" [disabled]="results().length === 0 || isExporting()"
+        matTooltip="Export both West and East hands as PDFs. If you specified contracts to evaluate, an extra PDF with the results will be exported.">
           Export Both PDFs
         </button>
       </div>
