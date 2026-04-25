@@ -77,23 +77,15 @@
               <button
                 type="button"
                 class="secondary"
-                (click)="removeContractSuggestion($index)"
-                [disabled]="contractSuggestions().length === 1"
+                (click)="handleContractSuggestionAction($index)"
+                [disabled]="!row.added && !isContractSuggestionComplete(row)"
               >
-                Remove
+                {{ row.added ? 'Remove' : 'Add Contract' }}
               </button>
             </div>
           }
         </div>
 
-        <button
-          type="button"
-          class="secondary"
-          (click)="addContractSuggestion()"
-          [disabled]="contractSuggestions().length >= 4"
-        >
-          Add contract
-        </button>
       </div>
 
       <div class="grid grid-2">

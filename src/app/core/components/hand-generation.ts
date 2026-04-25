@@ -25,6 +25,7 @@ interface EvaluatorOption {
 interface ContractInputRow {
   level: number | null;
   denomination: ContractDenomination | '';
+  added: boolean;
 }
 
 @Component({
@@ -57,7 +58,7 @@ export class HandGeneration {
   protected readonly selectedEvaluator = signal<HandEvaluator>('standard');
 
   protected readonly denominationOptions: ContractDenomination[] = ['CLUBS', 'DIAMONDS', 'HEARTS', 'SPADES', 'NOTRUMP'];
-  protected readonly contractSuggestions = signal<ContractInputRow[]>([{ level: null, denomination: '' }]);
+  protected readonly contractSuggestions = signal<ContractInputRow[]>([{ level: null, denomination: '', added: false }]);
 
   protected readonly westMinPoints = signal(15);
   protected readonly westMaxPoints = signal(17);
@@ -103,7 +104,7 @@ export class HandGeneration {
     };
 
     const normalizedContracts = this.contractSuggestions()
-      .filter((row) => row.level !== null && row.denomination !== '')
+      .filter((row) => row.added && row.level !== null && row.denomination !== '')
       .map((row) => ({
         level: Math.max(1, Math.min(7, Number(row.level))),
         denomination: row.denomination as ContractDenomination,
@@ -139,16 +140,50 @@ export class HandGeneration {
       });
   }
 
-  protected addContractSuggestion(): void {
-    if (this.contractSuggestions().length >= 4) return;
-    this.contractSuggestions.update((rows) => [...rows, { level: null, denomination: '' }]);
+  protected handleContractSuggestionAction(index: number): void {
+    const row = this.contractSuggestions()[index];
+
+    if (!row) return;
+
+    if (row.added) {
+      this.removeContractSuggestion(index);
+      return;
+    }
+
+    if (!this.isContractSuggestionComplete(row)) return;
+
+    this.contractSuggestions.update((rows) => {
+      const nextRows = rows.map((currentRow, i) =>
+        i === index ? { ...currentRow, added: true } : currentRow,
+      );
+
+      const addedContractCount = nextRows.filter((currentRow) => currentRow.added).length;
+      const hasDraftRow = nextRows.some((currentRow) => !currentRow.added);
+
+      if (addedContractCount < 4 && !hasDraftRow) {
+        return [...nextRows, { level: null, denomination: '', added: false }];
+      }
+
+      return nextRows;
+    });
   }
 
   protected removeContractSuggestion(index: number): void {
-    this.contractSuggestions.update((rows) => rows.filter((_, i) => i !== index));
-    if (this.contractSuggestions().length === 0) {
-      this.contractSuggestions.set([{ level: null, denomination: '' }]);
-    }
+    this.contractSuggestions.update((rows) => {
+      const nextRows = rows.filter((_, i) => i !== index);
+      const addedContractCount = nextRows.filter((row) => row.added).length;
+      const hasDraftRow = nextRows.some((row) => !row.added);
+
+      if (addedContractCount < 4 && !hasDraftRow) {
+        return [...nextRows, { level: null, denomination: '', added: false }];
+      }
+
+      return nextRows.length > 0 ? nextRows : [{ level: null, denomination: '', added: false }];
+    });
+  }
+
+  protected isContractSuggestionComplete(row: ContractInputRow): boolean {
+    return row.level !== null && row.denomination !== '';
   }
 
   protected setContractLevel(index: number, value: string): void {
