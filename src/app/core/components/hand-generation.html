@@ -32,6 +32,19 @@
           </select>
         </label>
 
+        <label
+          class="checkbox-field randomize-hands-field"
+          matTooltip="Randomly swaps the West and East hands for each generated hand pair after generation."
+        >
+          <input
+            type="checkbox"
+            [ngModel]="randomizeHands()"
+            (ngModelChange)="randomizeHands.set($event)"
+          />
+          <span>Randomize Hands</span>
+        </label>
+
+
         <div class="actions generation-actions">
           <button type="button" class="primary generate-btn" (click)="generate()" [disabled]="isLoading()">
             @if (isLoading()) {

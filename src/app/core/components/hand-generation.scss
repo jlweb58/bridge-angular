@@ -52,7 +52,7 @@
 
 .generation-row {
   display: grid;
-  grid-template-columns: minmax(220px, 320px) minmax(220px, 320px) auto;
+  grid-template-columns: minmax(220px, 320px) minmax(220px, 320px) minmax(180px, auto) auto;
   justify-content: center;
   align-items: end;
   gap: 14px;
@@ -66,6 +66,23 @@
 .hands-count-field,
 .evaluator-field {
   justify-items: center;
+}
+
+.checkbox-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.checkbox-field input {
+  width: 16px;
+  height: 16px;
+}
+
+.randomize-hands-field {
+  align-self: center;
+  justify-self: center;
 }
 
 .evaluator-field select,
@@ -263,5 +280,9 @@
   .generation-row,
   .contract-row {
     grid-template-columns: 1fr;
+  }
+
+  .randomize-hands-field {
+    justify-self: start;
   }
 }

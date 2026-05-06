@@ -57,6 +57,7 @@ export class HandGeneration {
     { label: 'Bergen', value: 'bergen' },
   ];
   protected readonly selectedEvaluator = signal<HandEvaluator>('standard');
+  protected readonly randomizeHands = signal(false);
 
   protected readonly denominationOptions: ContractDenomination[] = ['CLUBS', 'DIAMONDS', 'HEARTS', 'SPADES', 'NOTRUMP'];
   protected readonly contractSuggestions = signal<ContractInputRow[]>([{ level: null, denomination: '', added: false }]);
@@ -128,15 +129,13 @@ export class HandGeneration {
       }))
       .subscribe({
         next: (response) => {
-          const hands = response.hands ?? [];
-          this.results.set(response.hands ?? []);
+          const hands = this.randomizeHands()
+            ? this.randomizeEastWestHands(response.hands ?? [])
+            : response.hands ?? [];
+
+          this.results.set(hands);
           const allScores = hands.flatMap((hand) => hand.contractScores ?? []);
           this.contractScores.set(allScores);
-          },
-        error: (err: unknown) => {
-          this.error.set(err instanceof Error ? err.message : 'Failed to generate hands.');
-          this.results.set([]);
-          this.contractScores.set([]);
         },
       });
   }
@@ -275,6 +274,25 @@ export class HandGeneration {
   private parseNumber(value: string, fallback: number): number {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  private randomizeEastWestHands(hands: GeneratedHandPair[]): GeneratedHandPair[] {
+    return hands.map((hand) => {
+      if (Math.random() >= 0.5) {
+        return hand;
+      }
+
+      return {
+        ...hand,
+        dealer: this.swapEastWestPlayer(hand.dealer),
+        WEST: hand.EAST,
+        EAST: hand.WEST,
+      };
+    });
+  }
+
+  private swapEastWestPlayer(player: Player): Player {
+    return player === 'WEST' ? 'EAST' : 'WEST';
   }
 
   private startGenerationTimer(): void {
