@@ -1,18 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { PlayerHandParameters } from './player-hand-parameters';
+import { PlayerHandParametersComponent } from './player-hand-parameters';
 
 describe('PlayerHandParameters', () => {
-  let component: PlayerHandParameters;
-  let fixture: ComponentFixture<PlayerHandParameters>;
+  let component: PlayerHandParametersComponent;
+  let fixture: ComponentFixture<PlayerHandParametersComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PlayerHandParameters]
+      imports: [PlayerHandParametersComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(PlayerHandParameters);
+    fixture = TestBed.createComponent(PlayerHandParametersComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

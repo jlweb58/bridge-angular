@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AdvancedQueryBuilder } from './advanced-query-builder';
+import { AdvancedQueryBuilderComponent } from './advanced-query-builder';
 
 describe('AdvancedQueryBuilder', () => {
-  let component: AdvancedQueryBuilder;
-  let fixture: ComponentFixture<AdvancedQueryBuilder>;
+  let component: AdvancedQueryBuilderComponent;
+  let fixture: ComponentFixture<AdvancedQueryBuilderComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AdvancedQueryBuilder]
+      imports: [AdvancedQueryBuilderComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(AdvancedQueryBuilder);
+    fixture = TestBed.createComponent(AdvancedQueryBuilderComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
