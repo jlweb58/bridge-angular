@@ -120,6 +120,14 @@
   gap: 12px;
 }
 
+.player-constraints-grid:has(.advanced-player-card) {
+  grid-template-columns: 1fr;
+}
+
+.player-card {
+  min-width: 0;
+}
+
 .player-card-header {
   display: flex;
   justify-content: space-between;

@@ -61,7 +61,8 @@
       <div class="card">
         <h2>Contract suggestions (optional)</h2>
         <p class="contract-hint">
-          Add up to 4 contracts to estimate success probability. Enabling this may make generation slower.
+          Add up to 4 contracts to estimate success probability. Enabling this will make generation slower,
+          especially if you specify advanced suit-length constraints.
         </p>
 
         <div class="contract-grid">
@@ -106,7 +107,7 @@
 
       </div>
 
-      <div class="grid grid-2">
+      <div class="grid grid-2 player-constraints-grid">
         <ng-container
           [ngTemplateOutlet]="playerConstraints"
           [ngTemplateOutletContext]="{
@@ -138,7 +139,7 @@
         let-maxPoints="maxPoints"
         let-suitRanges="suitRanges"
       >
-        <div class="card">
+        <div class="card player-card" [class.advanced-player-card]="modeForPlayer(player) === 'advanced'">
           <div class="player-card-header">
             <h2>{{ title }}</h2>
 
@@ -156,6 +157,7 @@
                 class="mode-tab"
                 [class.active]="modeForPlayer(player) === 'advanced'"
                 (click)="setMode(player, 'advanced')"
+                matTooltip="Advanced mode allows you to specify complex suit-length constraints (experts only)"
               >
                 Advanced
               </button>
