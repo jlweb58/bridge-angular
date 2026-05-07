@@ -1,0 +1,46 @@
+@use './hand-generation-tokens' as tokens;
+
+@mixin card-surface {
+  border: 1px solid tokens.$border-subtle;
+  border-radius: tokens.$radius-card;
+  background: tokens.$surface;
+}
+
+@mixin control-base($include-background: false) {
+  padding: 8px 10px;
+  border: 1px solid tokens.$border-control;
+  border-radius: tokens.$radius-control;
+
+  @if $include-background {
+    background: tokens.$surface-plain;
+  }
+}
+
+@mixin field-layout {
+  display: grid;
+  gap: 6px;
+}
+
+@mixin inline-field-layout {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+@mixin pill-button {
+  padding: 10px 14px;
+  border: 0;
+  border-radius: tokens.$radius-pill;
+  font-weight: 600;
+}
+
+@mixin secondary-button {
+  @include pill-button;
+
+  background: tokens.$primary-soft;
+  color: tokens.$primary;
+}
+
+@mixin two-column-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}

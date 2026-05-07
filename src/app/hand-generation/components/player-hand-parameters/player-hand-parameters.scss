@@ -1,15 +1,17 @@
+@use '../../styles/hand-generation-tokens' as tokens;
+@use '../../styles/hand-generation-mixins' as mixins;
+
 :host {
   display: block;
   min-width: 0;
 }
 
 .card {
+  @include mixins.card-surface;
+
   padding: 14px;
   display: grid;
   gap: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 14px;
-  background: var(--mat-sys-surface, #fff);
 }
 
 .player-card {
@@ -30,23 +32,23 @@
 .mode-tabs {
   display: inline-flex;
   padding: 3px;
-  border-radius: 999px;
-  background: rgba(25, 118, 210, 0.08);
+  border-radius: tokens.$radius-pill;
+  background: tokens.$primary-faint;
 }
 
 .mode-tab {
   padding: 7px 12px;
   border: 0;
-  border-radius: 999px;
+  border-radius: tokens.$radius-pill;
   background: transparent;
-  color: #1976d2;
+  color: tokens.$primary;
   font-weight: 700;
   cursor: pointer;
 }
 
 .mode-tab.active {
-  background: #1976d2;
-  color: #fff;
+  background: tokens.$primary;
+  color: tokens.$surface-plain;
 }
 
 .grid {
@@ -55,7 +57,7 @@
 }
 
 .grid-2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  @include mixins.two-column-grid;
 }
 
 .compact {
@@ -63,29 +65,21 @@
 }
 
 .field {
-  display: grid;
-  gap: 6px;
+  @include mixins.field-layout;
 }
 
 .field.inline {
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 8px;
+  @include mixins.inline-field-layout;
 }
 
 .field input {
-  padding: 8px 10px;
-  border: 1px solid rgba(0, 0, 0, 0.18);
-  border-radius: 8px;
+  @include mixins.control-base;
 }
 
 .field select,
 .query-rule select,
 .query-group-header select {
-  padding: 8px 10px;
-  border: 1px solid rgba(0, 0, 0, 0.18);
-  border-radius: 8px;
-  background: #fff;
+  @include mixins.control-base(true);
 }
 
 .suit-grid {
@@ -109,7 +103,7 @@
 }
 
 .suit-label.red-suit {
-  color: #dc2626;
+  color: tokens.$red-suit;
 }
 
 .query-builder {
@@ -120,21 +114,21 @@
 .query-builder-hint,
 .empty-query {
   margin: 0;
-  color: var(--mat-sys-on-surface-variant, #4b5563);
+  color: tokens.$text-muted;
 }
 
 .query-group {
   display: grid;
   gap: 10px;
   padding: 12px;
-  border: 1px solid rgba(25, 118, 210, 0.2);
-  border-radius: 12px;
+  border: 1px solid tokens.$primary-border;
+  border-radius: tokens.$radius-query-group;
   background: rgba(25, 118, 210, 0.035);
 }
 
 .query-group .query-group {
   margin-left: 18px;
-  background: rgba(255, 255, 255, 0.72);
+  background: tokens.$surface-translucent;
 }
 
 .query-group-header {
@@ -159,7 +153,7 @@
   display: grid;
   gap: 10px;
   padding-left: 14px;
-  border-left: 2px solid rgba(25, 118, 210, 0.25);
+  border-left: 2px solid tokens.$primary-divider;
 }
 
 .query-rule {
@@ -168,24 +162,19 @@
   gap: 10px;
   align-items: center;
   padding: 10px;
-  border-radius: 10px;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: tokens.$radius-rule;
+  background: tokens.$surface-plain;
+  border: 1px solid tokens.$border-rule;
 }
 
 .query-rule-summary {
   font-weight: 700;
-  color: #166534;
+  color: tokens.$success;
   white-space: nowrap;
 }
 
 .secondary {
-  padding: 10px 14px;
-  border: 0;
-  border-radius: 999px;
-  font-weight: 600;
-  background: rgba(25, 118, 210, 0.12);
-  color: #1976d2;
+  @include mixins.secondary-button;
 }
 
 .compact-button {
@@ -194,8 +183,8 @@
 }
 
 .danger-button {
-  background: rgba(220, 38, 38, 0.12);
-  color: #b91c1c;
+  background: tokens.$danger-soft;
+  color: tokens.$danger;
 }
 
 @media (max-width: 900px) {

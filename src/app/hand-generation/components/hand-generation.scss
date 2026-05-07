@@ -1,3 +1,6 @@
+@use '../styles/hand-generation-tokens' as tokens;
+@use '../styles/hand-generation-mixins' as mixins;
+
 :host {
   display: block;
 }
@@ -22,15 +25,13 @@
 .results-header p,
 .error {
   margin: 0;
-  color: var(--mat-sys-on-surface-variant, #4b5563);
+  color: tokens.$text-muted;
 }
 
 .panel,
 .card,
 .results {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 14px;
-  background: var(--mat-sys-surface, #fff);
+  @include mixins.card-surface;
 }
 
 .panel {
@@ -43,7 +44,7 @@
 }
 
 .grid-2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  @include mixins.two-column-grid;
 }
 
 .generation-controls {
@@ -87,15 +88,12 @@
 
 .evaluator-field select,
 .contract-row select {
-  padding: 8px 10px;
-  border: 1px solid rgba(0, 0, 0, 0.18);
-  border-radius: 8px;
-  background: #fff;
+  @include mixins.control-base(true);
 }
 
 .contract-hint {
   margin: 0;
-  color: var(--mat-sys-on-surface-variant, #4b5563);
+  color: tokens.$text-muted;
 }
 
 .contract-grid {
@@ -125,27 +123,19 @@
 }
 
 .field {
-  display: grid;
-  gap: 6px;
+  @include mixins.field-layout;
 }
 
 .field.inline {
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 8px;
+  @include mixins.inline-field-layout;
 }
 
 .field input {
-  padding: 8px 10px;
-  border: 1px solid rgba(0, 0, 0, 0.18);
-  border-radius: 8px;
+  @include mixins.control-base;
 }
 
 .field select {
-  padding: 8px 10px;
-  border: 1px solid rgba(0, 0, 0, 0.18);
-  border-radius: 8px;
-  background: #fff;
+  @include mixins.control-base(true);
 }
 
 .actions {
@@ -155,20 +145,17 @@
 
 .primary,
 .secondary {
-  padding: 10px 14px;
-  border: 0;
-  border-radius: 999px;
-  font-weight: 600;
+  @include mixins.pill-button;
 }
 
 .primary {
-  background: #1976d2;
-  color: #fff;
+  background: tokens.$primary;
+  color: tokens.$surface-plain;
 }
 
 .secondary {
-  background: rgba(25, 118, 210, 0.12);
-  color: #1976d2;
+  background: tokens.$primary-soft;
+  color: tokens.$primary;
 }
 
 .generate-btn {
@@ -181,7 +168,7 @@
   width: 14px;
   height: 14px;
   border: 2px solid rgba(255, 255, 255, 0.45);
-  border-top-color: #ffffff;
+  border-top-color: tokens.$surface-plain;
   border-radius: 50%;
   animation: spin 0.75s linear infinite;
 }
@@ -225,7 +212,7 @@
 .contract-scores {
   display: grid;
   gap: 8px;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-top: 1px solid tokens.$border-subtle;
   padding-top: 12px;
 }
 
@@ -251,7 +238,7 @@
 
 .score-probability {
   font-weight: 700;
-  color: #166534;
+  color: tokens.$success;
 }
 
 .result-list {

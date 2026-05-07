@@ -1,0 +1,26 @@
+$primary: #1976d2;
+$primary-faint: rgba(25, 118, 210, 0.08);
+$primary-soft: rgba(25, 118, 210, 0.12);
+$primary-border: rgba(25, 118, 210, 0.2);
+$primary-divider: rgba(25, 118, 210, 0.25);
+
+$surface: var(--mat-sys-surface, #fff);
+$surface-plain: #fff;
+$surface-translucent: rgba(255, 255, 255, 0.72);
+
+$text-muted: var(--mat-sys-on-surface-variant, #4b5563);
+
+$border-subtle: rgba(0, 0, 0, 0.08);
+$border-control: rgba(0, 0, 0, 0.18);
+$border-rule: rgba(0, 0, 0, 0.06);
+
+$success: #166534;
+$danger: #b91c1c;
+$danger-soft: rgba(220, 38, 38, 0.12);
+$red-suit: #dc2626;
+
+$radius-card: 14px;
+$radius-query-group: 12px;
+$radius-rule: 10px;
+$radius-control: 8px;
+$radius-pill: 999px;
