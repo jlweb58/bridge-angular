@@ -110,7 +110,6 @@ export class HandGeneration {
     const request: HandGenerationRequest = {
       parameters: {
         WEST: this.buildPlayerConstraint(
-          'WEST',
           this.westMinPoints(),
           this.westMaxPoints(),
           this.westMode(),
@@ -118,7 +117,6 @@ export class HandGeneration {
           this.westQuery(),
         ),
         EAST: this.buildPlayerConstraint(
-          'EAST',
           this.eastMinPoints(),
           this.eastMaxPoints(),
           this.eastMode(),
@@ -331,7 +329,6 @@ export class HandGeneration {
   }
 
   private buildPlayerConstraint(
-    player: Player,
     minPoints: number,
     maxPoints: number,
     mode: HandMode,
