@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatTooltip } from '@angular/material/tooltip';
 import { finalize } from 'rxjs';
 
 import { type SuitChar } from '../../core/models/cards';
@@ -16,25 +17,31 @@ import {
   type SuitLengthCondition,
   HandEvaluator
 } from '../models/hand-generation-api.models';
-import { GeneratedHandsViewComponent } from './generated-hands-view';
-import {HandGenerationPdfService} from '../services/hand-generation-pdf.service';
-import {MatTooltip} from '@angular/material/tooltip';
-import {HandGenerationService} from '../services/hand-generation.service';
-import {type ConditionOperator,
+import {
+  type ConditionOperator,
   type ContractInputRow,
   type EvaluatorOption,
   type HandMode,
   type QueryGroup,
-  type QueryNode,
   type QueryRule,
   type SuitOption,} from '../models/hand-generation-ui.models';
+import { HandGenerationPdfService } from '../services/hand-generation-pdf.service';
+import { HandGenerationService } from '../services/hand-generation.service';
+import { GeneratedHandsViewComponent } from './generated-hands-view';
+import { PlayerHandParametersComponent } from './player-hand-parameters/player-hand-parameters';
 
 
 
 @Component({
   selector: 'app-hand-generation',
   standalone: true,
-  imports: [CommonModule, FormsModule, GeneratedHandsViewComponent, MatTooltip],
+  imports: [
+    CommonModule,
+    FormsModule,
+    GeneratedHandsViewComponent,
+    MatTooltip,
+    PlayerHandParametersComponent,
+  ],
   templateUrl: './hand-generation.html',
   styleUrl: './hand-generation.scss',
 })
@@ -166,6 +173,21 @@ export class HandGeneration {
     else this.eastMode.set(mode);
   }
 
+  protected setMinPoints(player: Player, value: string): void {
+    const points = this.parseNumber(value, 0);
+
+    if (player === 'WEST') this.westMinPoints.set(points);
+    else this.eastMinPoints.set(points);
+  }
+
+  protected setMaxPoints(player: Player, value: string): void {
+    const points = this.parseNumber(value, 37);
+
+    if (player === 'WEST') this.westMaxPoints.set(points);
+    else this.eastMaxPoints.set(points);
+  }
+
+
   protected addRule(player: Player, groupId: number): void {
     this.updateQuery(player, (root) => this.updateGroup(root, groupId, (group) => ({
       ...group,
@@ -214,22 +236,6 @@ export class HandGeneration {
       ...rule,
       max,
     })));
-  }
-
-  protected queryForPlayer(player: Player): QueryGroup {
-    return player === 'WEST' ? this.westQuery() : this.eastQuery();
-  }
-
-  protected modeForPlayer(player: Player): HandMode {
-    return player === 'WEST' ? this.westMode() : this.eastMode();
-  }
-
-  protected suitOptionLabel(value: BackendSuit): string {
-    return this.suitOptions.find((option) => option.value === value)?.label ?? value;
-  }
-
-  protected isQueryRule(node: QueryNode): node is QueryRule {
-    return node.kind === 'rule';
   }
 
   protected handleContractSuggestionAction(index: number): void {
@@ -322,19 +328,6 @@ export class HandGeneration {
   protected setSuitMax(player: Player, suit: SuitChar, value: string): void {
     const nextValue = this.parseNumber(value, 13);
     this.updateSuitRange(player, suit, { max: nextValue });
-  }
-
-  protected suitSymbol(suit: SuitChar): string {
-    switch (suit) {
-      case 'S': return '♠';
-      case 'H': return '♥';
-      case 'D': return '♦';
-      case 'C': return '♣';
-    }
-  }
-
-  protected isRedSuit(suit: SuitChar): boolean {
-    return suit === 'H' || suit === 'D';
   }
 
   private buildPlayerConstraint(

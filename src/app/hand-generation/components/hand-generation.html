@@ -108,229 +108,54 @@
       </div>
 
       <div class="grid grid-2 player-constraints-grid">
-        <ng-container
-          [ngTemplateOutlet]="playerConstraints"
-          [ngTemplateOutletContext]="{
-            player: 'WEST',
-            title: 'West',
-            minPoints: westMinPoints(),
-            maxPoints: westMaxPoints(),
-            suitRanges: westSuitRanges()
-          }"
+        <app-player-hand-parameters
+          player="WEST"
+          title="West"
+          [mode]="westMode()"
+          [minPoints]="westMinPoints()"
+          [maxPoints]="westMaxPoints()"
+          [suitRanges]="westSuitRanges()"
+          [query]="westQuery()"
+          [suitOptions]="suitOptions"
+          [suitChars]="suitChars"
+          (modeChange)="setMode('WEST', $event)"
+          (minPointsChange)="setMinPoints('WEST', $event)"
+          (maxPointsChange)="setMaxPoints('WEST', $event)"
+          (suitMinChange)="setSuitMin('WEST', $event.suit, $event.value)"
+          (suitMaxChange)="setSuitMax('WEST', $event.suit, $event.value)"
+          (addRule)="addRule('WEST', $event)"
+          (addGroup)="addGroup('WEST', $event)"
+          (removeNode)="removeNode('WEST', $event)"
+          (groupOperatorChange)="setGroupOperator('WEST', $event.groupId, $event.operator)"
+          (ruleSuitChange)="setRuleSuit('WEST', $event.ruleId, $event.suit)"
+          (ruleMinChange)="setRuleMin('WEST', $event.ruleId, $event.value)"
+          (ruleMaxChange)="setRuleMax('WEST', $event.ruleId, $event.value)"
         />
 
-        <ng-container
-          [ngTemplateOutlet]="playerConstraints"
-          [ngTemplateOutletContext]="{
-            player: 'EAST',
-            title: 'East',
-            minPoints: eastMinPoints(),
-            maxPoints: eastMaxPoints(),
-            suitRanges: eastSuitRanges()
-          }"
+        <app-player-hand-parameters
+          player="EAST"
+          title="East"
+          [mode]="eastMode()"
+          [minPoints]="eastMinPoints()"
+          [maxPoints]="eastMaxPoints()"
+          [suitRanges]="eastSuitRanges()"
+          [query]="eastQuery()"
+          [suitOptions]="suitOptions"
+          [suitChars]="suitChars"
+          (modeChange)="setMode('EAST', $event)"
+          (minPointsChange)="setMinPoints('EAST', $event)"
+          (maxPointsChange)="setMaxPoints('EAST', $event)"
+          (suitMinChange)="setSuitMin('EAST', $event.suit, $event.value)"
+          (suitMaxChange)="setSuitMax('EAST', $event.suit, $event.value)"
+          (addRule)="addRule('EAST', $event)"
+          (addGroup)="addGroup('EAST', $event)"
+          (removeNode)="removeNode('EAST', $event)"
+          (groupOperatorChange)="setGroupOperator('EAST', $event.groupId, $event.operator)"
+          (ruleSuitChange)="setRuleSuit('EAST', $event.ruleId, $event.suit)"
+          (ruleMinChange)="setRuleMin('EAST', $event.ruleId, $event.value)"
+          (ruleMaxChange)="setRuleMax('EAST', $event.ruleId, $event.value)"
         />
       </div>
-
-      <ng-template
-        #playerConstraints
-        let-player="player"
-        let-title="title"
-        let-minPoints="minPoints"
-        let-maxPoints="maxPoints"
-        let-suitRanges="suitRanges"
-      >
-        <div class="card player-card" [class.advanced-player-card]="modeForPlayer(player) === 'advanced'">
-          <div class="player-card-header">
-            <h2>{{ title }}</h2>
-
-            <div class="mode-tabs" role="tablist" [attr.aria-label]="title + ' constraint mode'">
-              <button
-                type="button"
-                class="mode-tab"
-                [class.active]="modeForPlayer(player) === 'basic'"
-                (click)="setMode(player, 'basic')"
-              >
-                Basic
-              </button>
-              <button
-                type="button"
-                class="mode-tab"
-                [class.active]="modeForPlayer(player) === 'advanced'"
-                (click)="setMode(player, 'advanced')"
-                matTooltip="Advanced mode allows you to specify complex suit-length constraints (experts only)"
-              >
-                Advanced
-              </button>
-            </div>
-          </div>
-
-          <div class="grid grid-2 compact">
-            <label class="field">
-              <span>Min HCP</span>
-              <input
-                type="number"
-                min="0"
-                max="37"
-                [ngModel]="minPoints"
-                (ngModelChange)="player === 'WEST' ? westMinPoints.set($event) : eastMinPoints.set($event)"
-              />
-            </label>
-            <label class="field">
-              <span>Max HCP</span>
-              <input
-                type="number"
-                min="0"
-                max="37"
-                [ngModel]="maxPoints"
-                (ngModelChange)="player === 'WEST' ? westMaxPoints.set($event) : eastMaxPoints.set($event)"
-              />
-            </label>
-          </div>
-
-          @if (modeForPlayer(player) === 'basic') {
-            <div class="suit-grid">
-              @for (suit of suitChars; track suit) {
-                <div class="suit-row">
-                  <div class="suit-label" [class.red-suit]="isRedSuit(suit)">
-                    {{ suitSymbol(suit) }}
-                  </div>
-                  <label class="field inline">
-                    <span>Min</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="13"
-                      [ngModel]="suitRanges[suit].min"
-                      (ngModelChange)="setSuitMin(player, suit, $event)"
-                    />
-                  </label>
-                  <label class="field inline">
-                    <span>Max</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="13"
-                      [ngModel]="suitRanges[suit].max"
-                      (ngModelChange)="setSuitMax(player, suit, $event)"
-                    />
-                  </label>
-                </div>
-              }
-            </div>
-          } @else {
-            <div class="query-builder">
-              <p class="query-builder-hint">
-                Build nested suit-length requirements using AND / OR groups.
-              </p>
-
-              <ng-container
-                [ngTemplateOutlet]="queryGroup"
-                [ngTemplateOutletContext]="{
-                  player: player,
-                  group: queryForPlayer(player),
-                  root: true
-                }"
-              />
-            </div>
-          }
-        </div>
-      </ng-template>
-
-      <ng-template #queryGroup let-player="player" let-group="group" let-root="root">
-        <div class="query-group">
-          <div class="query-group-header">
-            <label class="field inline query-operator-field">
-              <span>Require</span>
-              <select
-                [ngModel]="group.operator"
-                (ngModelChange)="setGroupOperator(player, group.id, $event)"
-              >
-                <option value="AND">AND</option>
-                <option value="OR">OR</option>
-              </select>
-            </label>
-
-            <div class="query-actions">
-              <button type="button" class="secondary compact-button" (click)="addRule(player, group.id)">
-                Add rule
-              </button>
-              <button type="button" class="secondary compact-button" (click)="addGroup(player, group.id)">
-                Add group
-              </button>
-              @if (!root) {
-                <button type="button" class="secondary compact-button danger-button" (click)="removeNode(player, group.id)">
-                  Remove group
-                </button>
-              }
-            </div>
-          </div>
-
-          <div class="query-children">
-            @if (group.children.length === 0) {
-              <p class="empty-query">
-                No conditions yet. Add a rule or group.
-              </p>
-            }
-
-            @for (node of group.children; track node.id) {
-              @if (isQueryRule(node)) {
-                <div class="query-rule">
-                  <label class="field inline">
-                    <span>Suit</span>
-                    <select
-                      [ngModel]="node.suit"
-                      (ngModelChange)="setRuleSuit(player, node.id, $event)"
-                    >
-                      @for (suit of suitOptions; track suit.value) {
-                        <option [value]="suit.value"> {{ suit.label }}</option>
-                      }
-                    </select>
-                  </label>
-
-                  <label class="field inline">
-                    <span>Min</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="13"
-                      [ngModel]="node.min"
-                      (ngModelChange)="setRuleMin(player, node.id, $event)"
-                    />
-                  </label>
-
-                  <label class="field inline">
-                    <span>Max</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="13"
-                      [ngModel]="node.max"
-                      (ngModelChange)="setRuleMax(player, node.id, $event)"
-                    />
-                  </label>
-
-                  <span class="query-rule-summary">
-                    {{ suitOptionLabel(node.suit) }} {{ node.min }}–{{ node.max }}
-                  </span>
-
-                  <button type="button" class="secondary compact-button danger-button" (click)="removeNode(player, node.id)">
-                    Remove
-                  </button>
-                </div>
-              } @else {
-                <ng-container
-                  [ngTemplateOutlet]="queryGroup"
-                  [ngTemplateOutletContext]="{
-                    player: player,
-                    group: node,
-                    root: false
-                  }"
-                />
-              }
-            }
-          </div>
-        </div>
-      </ng-template>
 
       <div class="export-actions">
         <button type="button" class="secondary" (click)="exportWest()" [disabled]="results().length === 0 || isExporting()"

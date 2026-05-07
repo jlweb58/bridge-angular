@@ -1,0 +1,189 @@
+<div class="card player-card" [class.advanced-player-card]="mode() === 'advanced'">
+  <div class="player-card-header">
+    <h2>{{ title() }}</h2>
+
+    <div class="mode-tabs" role="tablist" [attr.aria-label]="title() + ' constraint mode'">
+      <button
+        type="button"
+        class="mode-tab"
+        [class.active]="mode() === 'basic'"
+        (click)="modeChange.emit('basic')"
+      >
+        Basic
+      </button>
+      <button
+        type="button"
+        class="mode-tab"
+        [class.active]="mode() === 'advanced'"
+        (click)="modeChange.emit('advanced')"
+        matTooltip="Advanced mode allows you to specify complex suit-length constraints (experts only)"
+      >
+        Advanced
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-2 compact">
+    <label class="field">
+      <span>Min HCP</span>
+      <input
+        type="number"
+        min="0"
+        max="37"
+        [ngModel]="minPoints()"
+        (ngModelChange)="minPointsChange.emit($event)"
+      />
+    </label>
+    <label class="field">
+      <span>Max HCP</span>
+      <input
+        type="number"
+        min="0"
+        max="37"
+        [ngModel]="maxPoints()"
+        (ngModelChange)="maxPointsChange.emit($event)"
+      />
+    </label>
+  </div>
+
+  @if (mode() === 'basic') {
+    <div class="suit-grid">
+      @for (suit of suitChars(); track suit) {
+        <div class="suit-row">
+          <div class="suit-label" [class.red-suit]="isRedSuit(suit)">
+            {{ suitSymbol(suit) }}
+          </div>
+          <label class="field inline">
+            <span>Min</span>
+            <input
+              type="number"
+              min="0"
+              max="13"
+              [ngModel]="suitRanges()[suit].min"
+              (ngModelChange)="suitMinChange.emit({ suit, value: $event })"
+            />
+          </label>
+          <label class="field inline">
+            <span>Max</span>
+            <input
+              type="number"
+              min="0"
+              max="13"
+              [ngModel]="suitRanges()[suit].max"
+              (ngModelChange)="suitMaxChange.emit({ suit, value: $event })"
+            />
+          </label>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="query-builder">
+      <p class="query-builder-hint">
+        Build nested suit-length requirements using AND / OR groups.
+      </p>
+
+      <ng-container
+        [ngTemplateOutlet]="queryGroup"
+        [ngTemplateOutletContext]="{
+          group: query(),
+          root: true
+        }"
+      />
+    </div>
+  }
+</div>
+
+<ng-template #queryGroup let-group="group" let-root="root">
+  <div class="query-group">
+    <div class="query-group-header">
+      <label class="field inline query-operator-field">
+        <span>Require</span>
+        <select
+          [ngModel]="group.operator"
+          (ngModelChange)="groupOperatorChange.emit({ groupId: group.id, operator: $event })"
+        >
+          <option value="AND">AND</option>
+          <option value="OR">OR</option>
+        </select>
+      </label>
+
+      <div class="query-actions">
+        <button type="button" class="secondary compact-button" (click)="addRule.emit(group.id)">
+          Add rule
+        </button>
+        <button type="button" class="secondary compact-button" (click)="addGroup.emit(group.id)">
+          Add group
+        </button>
+        @if (!root) {
+          <button type="button" class="secondary compact-button danger-button" (click)="removeNode.emit(group.id)">
+            Remove group
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="query-children">
+      @if (group.children.length === 0) {
+        <p class="empty-query">
+          No conditions yet. Add a rule or group.
+        </p>
+      }
+
+      @for (node of group.children; track node.id) {
+        @if (isQueryRule(node)) {
+          <div class="query-rule">
+            <label class="field inline">
+              <span>Suit</span>
+              <select
+                [ngModel]="node.suit"
+                (ngModelChange)="ruleSuitChange.emit({ ruleId: node.id, suit: $event })"
+              >
+                @for (suit of suitOptions(); track suit.value) {
+                  <option [value]="suit.value"> {{ suit.label }}</option>
+                }
+              </select>
+            </label>
+
+            <label class="field inline">
+              <span>Min</span>
+              <input
+                type="number"
+                min="0"
+                max="13"
+                [ngModel]="node.min"
+                (ngModelChange)="ruleMinChange.emit({ ruleId: node.id, value: $event })"
+              />
+            </label>
+
+            <label class="field inline">
+              <span>Max</span>
+              <input
+                type="number"
+                min="0"
+                max="13"
+                [ngModel]="node.max"
+                (ngModelChange)="ruleMaxChange.emit({ ruleId: node.id, value: $event })"
+              />
+            </label>
+
+            <span class="query-rule-summary">
+              {{ suitOptionLabel(node.suit) }} {{ node.min }}–{{ node.max }}
+            </span>
+
+            <button type="button" class="secondary compact-button danger-button" (click)="removeNode.emit(node.id)">
+              Remove
+            </button>
+          </div>
+        } @else {
+          <ng-container
+            [ngTemplateOutlet]="queryGroup"
+            [ngTemplateOutletContext]="{
+              group: node,
+              root: false
+            }"
+          />
+        }
+      }
+    </div>
+  </div>
+</ng-template>
