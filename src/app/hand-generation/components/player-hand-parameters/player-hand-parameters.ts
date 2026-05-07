@@ -13,15 +13,14 @@ import {
   type ConditionOperator,
   type HandMode,
   type QueryGroup,
-  type QueryNode,
-  type QueryRule,
   type SuitOption,
 } from '../../models/hand-generation-ui.models';
+import { AdvancedQueryBuilderComponent } from '../advanced-query-builder/advanced-query-builder';
 
 @Component({
   selector: 'app-player-hand-parameters',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatTooltip],
+  imports: [CommonModule, FormsModule, MatTooltip, AdvancedQueryBuilderComponent],
   templateUrl: './player-hand-parameters.html',
   styleUrl: './player-hand-parameters.scss',
 })
@@ -50,14 +49,6 @@ export class PlayerHandParametersComponent {
   readonly ruleSuitChange = output<{ ruleId: number; suit: BackendSuit }>();
   readonly ruleMinChange = output<{ ruleId: number; value: string }>();
   readonly ruleMaxChange = output<{ ruleId: number; value: string }>();
-
-  protected isQueryRule(node: QueryNode): node is QueryRule {
-    return node.kind === 'rule';
-  }
-
-  protected suitOptionLabel(value: BackendSuit): string {
-    return this.suitOptions().find((option) => option.value === value)?.label ?? value;
-  }
 
   protected suitSymbol(suit: SuitChar): string {
     switch (suit) {

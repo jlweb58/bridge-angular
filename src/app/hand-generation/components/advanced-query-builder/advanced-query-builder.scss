@@ -1,0 +1,116 @@
+@use '../../styles/hand-generation-tokens' as tokens;
+@use '../../styles/hand-generation-mixins' as mixins;
+
+:host {
+  display: block;
+}
+
+.query-builder {
+  display: grid;
+  gap: 10px;
+}
+
+.query-builder-hint,
+.empty-query {
+  margin: 0;
+  color: tokens.$text-muted;
+}
+
+.query-group {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid tokens.$primary-border;
+  border-radius: tokens.$radius-query-group;
+  background: rgba(25, 118, 210, 0.035);
+}
+
+.query-group .query-group {
+  margin-left: 18px;
+  background: tokens.$surface-translucent;
+}
+
+.query-group-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.query-operator-field {
+  font-weight: 700;
+}
+
+.query-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.query-children {
+  display: grid;
+  gap: 10px;
+  padding-left: 14px;
+  border-left: 2px solid tokens.$primary-divider;
+}
+
+.query-rule {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.3fr) minmax(90px, 0.7fr) minmax(90px, 0.7fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: tokens.$radius-rule;
+  background: tokens.$surface-plain;
+  border: 1px solid tokens.$border-rule;
+}
+
+.query-rule-summary {
+  font-weight: 700;
+  color: tokens.$success;
+  white-space: nowrap;
+}
+
+.field {
+  @include mixins.field-layout;
+}
+
+.field.inline {
+  @include mixins.inline-field-layout;
+}
+
+.field input {
+  @include mixins.control-base;
+}
+
+.field select,
+.query-rule select,
+.query-group-header select {
+  @include mixins.control-base(true);
+}
+
+.secondary {
+  @include mixins.secondary-button;
+}
+
+.compact-button {
+  padding: 8px 11px;
+  font-size: 0.9rem;
+}
+
+.danger-button {
+  background: tokens.$danger-soft;
+  color: tokens.$danger;
+}
+
+@media (max-width: 900px) {
+  .query-rule {
+    grid-template-columns: 1fr;
+  }
+
+  .query-group-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

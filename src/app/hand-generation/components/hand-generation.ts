@@ -30,8 +30,6 @@ import { HandGenerationService } from '../services/hand-generation.service';
 import { GeneratedHandsViewComponent } from './generated-hands-view';
 import { PlayerHandParametersComponent } from './player-hand-parameters/player-hand-parameters';
 
-
-
 @Component({
   selector: 'app-hand-generation',
   standalone: true,
