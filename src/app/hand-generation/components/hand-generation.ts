@@ -5,7 +5,6 @@ import { finalize } from 'rxjs';
 
 import { type SuitChar } from '../../core/models/cards';
 import {
-  HandGenerationService,
   type HandGenerationRequest,
   type GeneratedHandPair,
   type ContractScore,
@@ -16,48 +15,21 @@ import {
   type ConditionGroup,
   type SuitLengthCondition,
   HandEvaluator
-} from '../services/hand-generation.service';
+} from '../models/hand-generation-api.models';
 import { GeneratedHandsViewComponent } from './generated-hands-view';
 import {HandGenerationPdfService} from '../services/hand-generation-pdf.service';
 import {MatTooltip} from '@angular/material/tooltip';
+import {HandGenerationService} from '../services/hand-generation.service';
+import {type ConditionOperator,
+  type ContractInputRow,
+  type EvaluatorOption,
+  type HandMode,
+  type QueryGroup,
+  type QueryNode,
+  type QueryRule,
+  type SuitOption,} from '../models/hand-generation-ui.models';
 
-interface EvaluatorOption {
-  label: string;
-  value: HandEvaluator;
-}
 
-interface ContractInputRow {
-  level: number | null;
-  denomination: ContractDenomination | '';
-  added: boolean;
-}
-
-type HandMode = 'basic' | 'advanced';
-type ConditionOperator = 'AND' | 'OR';
-
-interface QueryRule {
-  id: number;
-  kind: 'rule';
-  suit: BackendSuit;
-  min: number;
-  max: number;
-}
-
-interface QueryGroup {
-  id: number;
-  kind: 'group';
-  operator: ConditionOperator;
-  children: QueryNode[];
-}
-
-type QueryNode = QueryGroup | QueryRule;
-
-interface SuitOption {
-  label: string;
-  value: BackendSuit;
-  symbol: string;
-  red: boolean;
-}
 
 @Component({
   selector: 'app-hand-generation',

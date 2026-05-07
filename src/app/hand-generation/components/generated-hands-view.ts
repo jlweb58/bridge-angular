@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, input } from '@angular/core';
 
 import type { CardCode, SuitChar } from '../../core/models/cards';
-import type {ContractDenomination, ContractScore, GeneratedHandPair} from '../services/hand-generation.service';
+import type {ContractDenomination, GeneratedHandPair} from '../models/hand-generation-api.models';
 
 @Component({
   selector: 'app-generated-hands-view',
