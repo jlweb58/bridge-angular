@@ -260,10 +260,6 @@ export class HandGeneration {
     return node.kind === 'rule';
   }
 
-  protected isQueryGroup(node: QueryNode): node is QueryGroup {
-    return node.kind === 'group';
-  }
-
   protected handleContractSuggestionAction(index: number): void {
     const row = this.contractSuggestions()[index];
 

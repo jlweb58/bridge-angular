@@ -282,7 +282,7 @@
                       (ngModelChange)="setRuleSuit(player, node.id, $event)"
                     >
                       @for (suit of suitOptions; track suit.value) {
-                        <option [value]="suit.value">{{ suit.symbol }} {{ suit.label }}</option>
+                        <option [value]="suit.value"> {{ suit.label }}</option>
                       }
                     </select>
                   </label>
