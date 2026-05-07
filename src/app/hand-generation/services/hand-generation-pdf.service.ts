@@ -3,7 +3,7 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import type { Content, Margins, TDocumentDefinitions } from 'pdfmake/interfaces';
 
-import { type CardCode, type SuitChar } from '../core/models/cards';
+import { type CardCode, type SuitChar } from '../../core/models/cards';
 import type { GeneratedHandPair } from './hand-generation.service';
 
 type Player = 'WEST' | 'EAST';
