@@ -12,6 +12,9 @@ import {
   type ContractDenomination,
   type Range,
   type Player,
+  type BackendSuit,
+  type ConditionGroup,
+  type SuitLengthCondition,
   HandEvaluator
 } from '../services/hand-generation.service';
 import { GeneratedHandsViewComponent } from './generated-hands-view';
@@ -27,6 +30,33 @@ interface ContractInputRow {
   level: number | null;
   denomination: ContractDenomination | '';
   added: boolean;
+}
+
+type HandMode = 'basic' | 'advanced';
+type ConditionOperator = 'AND' | 'OR';
+
+interface QueryRule {
+  id: number;
+  kind: 'rule';
+  suit: BackendSuit;
+  min: number;
+  max: number;
+}
+
+interface QueryGroup {
+  id: number;
+  kind: 'group';
+  operator: ConditionOperator;
+  children: QueryNode[];
+}
+
+type QueryNode = QueryGroup | QueryRule;
+
+interface SuitOption {
+  label: string;
+  value: BackendSuit;
+  symbol: string;
+  red: boolean;
 }
 
 @Component({
@@ -49,6 +79,7 @@ export class HandGeneration {
 
   private generationStartedAtMs: number | null = null;
   private generationTimerId: ReturnType<typeof setInterval> | null = null;
+  private nextQueryNodeId = 1;
 
   protected readonly numberOfHands = signal(10);
   protected readonly evaluatorOptions: EvaluatorOption[] = [
@@ -66,6 +97,19 @@ export class HandGeneration {
   protected readonly westMaxPoints = signal(17);
   protected readonly eastMinPoints = signal(8);
   protected readonly eastMaxPoints = signal(12);
+
+  protected readonly westMode = signal<HandMode>('basic');
+  protected readonly eastMode = signal<HandMode>('basic');
+
+  protected readonly suitOptions: SuitOption[] = [
+    { label: 'Spades', value: 'SPADES', symbol: '♠', red: false },
+    { label: 'Hearts', value: 'HEARTS', symbol: '♥', red: true },
+    { label: 'Diamonds', value: 'DIAMONDS', symbol: '♦', red: true },
+    { label: 'Clubs', value: 'CLUBS', symbol: '♣', red: false },
+  ];
+
+  protected readonly westQuery = signal<QueryGroup>(this.createDefaultQueryGroup());
+  protected readonly eastQuery = signal<QueryGroup>(this.createDefaultQueryGroup());
 
   protected readonly westSuitRanges = signal<Record<SuitChar, Range>>({
     S: { min: 2, max: 4 },
@@ -86,20 +130,22 @@ export class HandGeneration {
   protected generate(): void {
     const request: HandGenerationRequest = {
       parameters: {
-        WEST: {
-          minPoints: this.westMinPoints(),
-          maxPoints: this.westMaxPoints(),
-          handDistribution: {
-            suitLengths: this.westSuitRanges(),
-          },
-        },
-        EAST: {
-          minPoints: this.eastMinPoints(),
-          maxPoints: this.eastMaxPoints(),
-          handDistribution: {
-            suitLengths: this.eastSuitRanges(),
-          },
-        },
+        WEST: this.buildPlayerConstraint(
+          'WEST',
+          this.westMinPoints(),
+          this.westMaxPoints(),
+          this.westMode(),
+          this.westSuitRanges(),
+          this.westQuery(),
+        ),
+        EAST: this.buildPlayerConstraint(
+          'EAST',
+          this.eastMinPoints(),
+          this.eastMaxPoints(),
+          this.eastMode(),
+          this.eastSuitRanges(),
+          this.eastQuery(),
+        ),
       },
       numberOfHands: this.numberOfHands(),
       evaluator: this.selectedEvaluator(),
@@ -137,7 +183,85 @@ export class HandGeneration {
           const allScores = hands.flatMap((hand) => hand.contractScores ?? []);
           this.contractScores.set(allScores);
         },
+        error: (generationError: Error) => {
+          this.error.set(generationError.message || 'Failed to generate hands.');
+        },
       });
+  }
+
+  protected setMode(player: Player, mode: HandMode): void {
+    if (player === 'WEST') this.westMode.set(mode);
+    else this.eastMode.set(mode);
+  }
+
+  protected addRule(player: Player, groupId: number): void {
+    this.updateQuery(player, (root) => this.updateGroup(root, groupId, (group) => ({
+      ...group,
+      children: [...group.children, this.createQueryRule()],
+    })));
+  }
+
+  protected addGroup(player: Player, groupId: number): void {
+    this.updateQuery(player, (root) => this.updateGroup(root, groupId, (group) => ({
+      ...group,
+      children: [...group.children, this.createDefaultQueryGroup()],
+    })));
+  }
+
+  protected removeNode(player: Player, nodeId: number): void {
+    this.updateQuery(player, (root) => this.removeQueryNode(root, nodeId));
+  }
+
+  protected setGroupOperator(player: Player, groupId: number, operator: ConditionOperator): void {
+    this.updateQuery(player, (root) => this.updateGroup(root, groupId, (group) => ({
+      ...group,
+      operator,
+    })));
+  }
+
+  protected setRuleSuit(player: Player, ruleId: number, suit: BackendSuit): void {
+    this.updateQuery(player, (root) => this.updateRule(root, ruleId, (rule) => ({
+      ...rule,
+      suit,
+    })));
+  }
+
+  protected setRuleMin(player: Player, ruleId: number, value: string): void {
+    const min = Math.max(0, Math.min(13, this.parseNumber(value, 0)));
+
+    this.updateQuery(player, (root) => this.updateRule(root, ruleId, (rule) => ({
+      ...rule,
+      min,
+    })));
+  }
+
+  protected setRuleMax(player: Player, ruleId: number, value: string): void {
+    const max = Math.max(0, Math.min(13, this.parseNumber(value, 13)));
+
+    this.updateQuery(player, (root) => this.updateRule(root, ruleId, (rule) => ({
+      ...rule,
+      max,
+    })));
+  }
+
+  protected queryForPlayer(player: Player): QueryGroup {
+    return player === 'WEST' ? this.westQuery() : this.eastQuery();
+  }
+
+  protected modeForPlayer(player: Player): HandMode {
+    return player === 'WEST' ? this.westMode() : this.eastMode();
+  }
+
+  protected suitOptionLabel(value: BackendSuit): string {
+    return this.suitOptions.find((option) => option.value === value)?.label ?? value;
+  }
+
+  protected isQueryRule(node: QueryNode): node is QueryRule {
+    return node.kind === 'rule';
+  }
+
+  protected isQueryGroup(node: QueryNode): node is QueryGroup {
+    return node.kind === 'group';
   }
 
   protected handleContractSuggestionAction(index: number): void {
@@ -243,6 +367,122 @@ export class HandGeneration {
 
   protected isRedSuit(suit: SuitChar): boolean {
     return suit === 'H' || suit === 'D';
+  }
+
+  private buildPlayerConstraint(
+    player: Player,
+    minPoints: number,
+    maxPoints: number,
+    mode: HandMode,
+    suitRanges: Record<SuitChar, Range>,
+    query: QueryGroup,
+  ): HandGenerationRequest['parameters'][Player] {
+    const base = {
+      minPoints,
+      maxPoints,
+    };
+
+    if (mode === 'advanced') {
+      const condition = this.toConditionGroup(query);
+
+      if (condition.conditions.length > 0) {
+        return {
+          ...base,
+          condition,
+        };
+      }
+    }
+
+    return {
+      ...base,
+      handDistribution: {
+        suitLengths: suitRanges,
+      },
+    };
+  }
+
+  private createDefaultQueryGroup(): QueryGroup {
+    return {
+      id: this.nextQueryNodeId++,
+      kind: 'group',
+      operator: 'AND',
+      children: [],
+    };
+  }
+
+  private createQueryRule(): QueryRule {
+    return {
+      id: this.nextQueryNodeId++,
+      kind: 'rule',
+      suit: 'SPADES',
+      min: 0,
+      max: 13,
+    };
+  }
+
+  private updateQuery(player: Player, update: (root: QueryGroup) => QueryGroup): void {
+    if (player === 'WEST') {
+      this.westQuery.update(update);
+      return;
+    }
+
+    this.eastQuery.update(update);
+  }
+
+  private updateGroup(root: QueryGroup, groupId: number, update: (group: QueryGroup) => QueryGroup): QueryGroup {
+    if (root.id === groupId) {
+      return update(root);
+    }
+
+    return {
+      ...root,
+      children: root.children.map((child) =>
+        child.kind === 'group' ? this.updateGroup(child, groupId, update) : child,
+      ),
+    };
+  }
+
+  private updateRule(root: QueryGroup, ruleId: number, update: (rule: QueryRule) => QueryRule): QueryGroup {
+    return {
+      ...root,
+      children: root.children.map((child) => {
+        if (child.kind === 'rule') {
+          return child.id === ruleId ? update(child) : child;
+        }
+
+        return this.updateRule(child, ruleId, update);
+      }),
+    };
+  }
+
+  private removeQueryNode(root: QueryGroup, nodeId: number): QueryGroup {
+    return {
+      ...root,
+      children: root.children
+        .filter((child) => child.id !== nodeId)
+        .map((child) => child.kind === 'group' ? this.removeQueryNode(child, nodeId) : child),
+    };
+  }
+
+  private toConditionGroup(group: QueryGroup): ConditionGroup {
+    return {
+      operator: group.operator,
+      conditions: group.children.map((child): ConditionGroup | SuitLengthCondition => {
+        if (child.kind === 'group') {
+          return this.toConditionGroup(child);
+        }
+
+        return {
+          suit: child.suit,
+          range: {
+            min: Math.min(child.min, child.max),
+            max: Math.max(child.min, child.max),
+          },
+        };
+      }).filter((condition) => {
+        return 'suit' in condition || condition.conditions.length > 0;
+      }),
+    };
   }
 
   private exportPlayer(player: Player): void {

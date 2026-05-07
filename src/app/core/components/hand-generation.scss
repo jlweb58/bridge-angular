@@ -120,6 +120,35 @@
   gap: 12px;
 }
 
+.player-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.mode-tabs {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(25, 118, 210, 0.08);
+}
+
+.mode-tab {
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #1976d2;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mode-tab.active {
+  background: #1976d2;
+  color: #fff;
+}
+
 .field {
   display: grid;
   gap: 6px;
@@ -135,6 +164,92 @@
   padding: 8px 10px;
   border: 1px solid rgba(0, 0, 0, 0.18);
   border-radius: 8px;
+}
+
+.field select,
+.query-rule select,
+.query-group-header select {
+  padding: 8px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.query-builder {
+  display: grid;
+  gap: 10px;
+}
+
+.query-builder-hint,
+.empty-query {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant, #4b5563);
+}
+
+.query-group {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(25, 118, 210, 0.2);
+  border-radius: 12px;
+  background: rgba(25, 118, 210, 0.035);
+}
+
+.query-group .query-group {
+  margin-left: 18px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.query-group-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.query-operator-field {
+  font-weight: 700;
+}
+
+.query-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.query-children {
+  display: grid;
+  gap: 10px;
+  padding-left: 14px;
+  border-left: 2px solid rgba(25, 118, 210, 0.25);
+}
+
+.query-rule {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.3fr) minmax(90px, 0.7fr) minmax(90px, 0.7fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.query-rule-summary {
+  font-weight: 700;
+  color: #166534;
+  white-space: nowrap;
+}
+
+.compact-button {
+  padding: 8px 11px;
+  font-size: 0.9rem;
+}
+
+.danger-button {
+  background: rgba(220, 38, 38, 0.12);
+  color: #b91c1c;
 }
 
 .actions {
@@ -278,8 +393,15 @@
   }
 
   .generation-row,
-  .contract-row {
+  .contract-row,
+  .query-rule {
     grid-template-columns: 1fr;
+  }
+
+  .player-card-header,
+  .query-group-header {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .randomize-hands-field {

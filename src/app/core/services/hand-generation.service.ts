@@ -12,12 +12,25 @@ export interface Range {
   max: number;
 }
 
+export type BackendSuit = 'SPADES' | 'HEARTS' | 'DIAMONDS' | 'CLUBS';
+
+export interface SuitLengthCondition {
+  suit: BackendSuit;
+  range: Range;
+}
+
+export interface ConditionGroup {
+  operator: 'AND' | 'OR';
+  conditions: Array<ConditionGroup | SuitLengthCondition>;
+}
+
 interface HandConstraint {
   minPoints: number;
   maxPoints: number;
-  handDistribution: {
+  handDistribution?: {
     suitLengths: Record<SuitChar, Range>;
   };
+  condition?: ConditionGroup;
 }
 
 export type HandEvaluator = 'standard' | 'kaplan-rubens' | 'bergen';

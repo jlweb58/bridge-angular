@@ -25,7 +25,7 @@
         <label class="field evaluator-field">
           <span>Hand evaluator</span>
           <select [ngModel]="selectedEvaluator()" (ngModelChange)="selectedEvaluator.set($event)"
-          matTooltip="You can customize the hand evaluator to suit your needs. The default evaluator is 'Standard' which is the typical 4-3-2-1 point count">
+                  matTooltip="You can customize the hand evaluator to suit your needs. The default evaluator is 'Standard' which is the typical 4-3-2-1 point count">
             @for (option of evaluatorOptions; track option.value) {
               <option [value]="option.value">{{ option.label }}</option>
             }
@@ -107,107 +107,240 @@
       </div>
 
       <div class="grid grid-2">
-        <div class="card">
-          <h2>West</h2>
+        <ng-container
+          [ngTemplateOutlet]="playerConstraints"
+          [ngTemplateOutletContext]="{
+            player: 'WEST',
+            title: 'West',
+            minPoints: westMinPoints(),
+            maxPoints: westMaxPoints(),
+            suitRanges: westSuitRanges()
+          }"
+        />
 
-          <div class="grid grid-2 compact">
-            <label class="field">
-              <span>Min HCP</span>
-              <input type="number" min="0" max="37" [ngModel]="westMinPoints()" (ngModelChange)="westMinPoints.set($event)" />
-            </label>
-            <label class="field">
-              <span>Max HCP</span>
-              <input type="number" min="0" max="37" [ngModel]="westMaxPoints()" (ngModelChange)="westMaxPoints.set($event)" />
-            </label>
-          </div>
-
-          <div class="suit-grid">
-            @for (suit of suitChars; track suit) {
-              <div class="suit-row">
-                <div class="suit-label" [class.red-suit]="isRedSuit(suit)">
-                  {{ suitSymbol(suit) }}
-                </div>
-                <label class="field inline">
-                  <span>Min</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="13"
-                    [ngModel]="westSuitRanges()[suit].min"
-                    (ngModelChange)="setSuitMin('WEST', suit, $event)"
-                  />
-                </label>
-                <label class="field inline">
-                  <span>Max</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="13"
-                    [ngModel]="westSuitRanges()[suit].max"
-                    (ngModelChange)="setSuitMax('WEST', suit, $event)"
-                  />
-                </label>
-              </div>
-            }
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>East</h2>
-
-          <div class="grid grid-2 compact">
-            <label class="field">
-              <span>Min HCP</span>
-              <input type="number" min="0" max="37" [ngModel]="eastMinPoints()" (ngModelChange)="eastMinPoints.set($event)" />
-            </label>
-            <label class="field">
-              <span>Max HCP</span>
-              <input type="number" min="0" max="37" [ngModel]="eastMaxPoints()" (ngModelChange)="eastMaxPoints.set($event)" />
-            </label>
-          </div>
-
-          <div class="suit-grid">
-            @for (suit of suitChars; track suit) {
-              <div class="suit-row">
-                <div class="suit-label" [class.red-suit]="isRedSuit(suit)">
-                  {{ suitSymbol(suit) }}
-                </div>
-                <label class="field inline">
-                  <span>Min</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="13"
-                    [ngModel]="eastSuitRanges()[suit].min"
-                    (ngModelChange)="setSuitMin('EAST', suit, $event)"
-                  />
-                </label>
-                <label class="field inline">
-                  <span>Max</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="13"
-                    [ngModel]="eastSuitRanges()[suit].max"
-                    (ngModelChange)="setSuitMax('EAST', suit, $event)"
-                  />
-                </label>
-              </div>
-            }
-          </div>
-        </div>
+        <ng-container
+          [ngTemplateOutlet]="playerConstraints"
+          [ngTemplateOutletContext]="{
+            player: 'EAST',
+            title: 'East',
+            minPoints: eastMinPoints(),
+            maxPoints: eastMaxPoints(),
+            suitRanges: eastSuitRanges()
+          }"
+        />
       </div>
+
+      <ng-template
+        #playerConstraints
+        let-player="player"
+        let-title="title"
+        let-minPoints="minPoints"
+        let-maxPoints="maxPoints"
+        let-suitRanges="suitRanges"
+      >
+        <div class="card">
+          <div class="player-card-header">
+            <h2>{{ title }}</h2>
+
+            <div class="mode-tabs" role="tablist" [attr.aria-label]="title + ' constraint mode'">
+              <button
+                type="button"
+                class="mode-tab"
+                [class.active]="modeForPlayer(player) === 'basic'"
+                (click)="setMode(player, 'basic')"
+              >
+                Basic
+              </button>
+              <button
+                type="button"
+                class="mode-tab"
+                [class.active]="modeForPlayer(player) === 'advanced'"
+                (click)="setMode(player, 'advanced')"
+              >
+                Advanced
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-2 compact">
+            <label class="field">
+              <span>Min HCP</span>
+              <input
+                type="number"
+                min="0"
+                max="37"
+                [ngModel]="minPoints"
+                (ngModelChange)="player === 'WEST' ? westMinPoints.set($event) : eastMinPoints.set($event)"
+              />
+            </label>
+            <label class="field">
+              <span>Max HCP</span>
+              <input
+                type="number"
+                min="0"
+                max="37"
+                [ngModel]="maxPoints"
+                (ngModelChange)="player === 'WEST' ? westMaxPoints.set($event) : eastMaxPoints.set($event)"
+              />
+            </label>
+          </div>
+
+          @if (modeForPlayer(player) === 'basic') {
+            <div class="suit-grid">
+              @for (suit of suitChars; track suit) {
+                <div class="suit-row">
+                  <div class="suit-label" [class.red-suit]="isRedSuit(suit)">
+                    {{ suitSymbol(suit) }}
+                  </div>
+                  <label class="field inline">
+                    <span>Min</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="13"
+                      [ngModel]="suitRanges[suit].min"
+                      (ngModelChange)="setSuitMin(player, suit, $event)"
+                    />
+                  </label>
+                  <label class="field inline">
+                    <span>Max</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="13"
+                      [ngModel]="suitRanges[suit].max"
+                      (ngModelChange)="setSuitMax(player, suit, $event)"
+                    />
+                  </label>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="query-builder">
+              <p class="query-builder-hint">
+                Build nested suit-length requirements using AND / OR groups.
+              </p>
+
+              <ng-container
+                [ngTemplateOutlet]="queryGroup"
+                [ngTemplateOutletContext]="{
+                  player: player,
+                  group: queryForPlayer(player),
+                  root: true
+                }"
+              />
+            </div>
+          }
+        </div>
+      </ng-template>
+
+      <ng-template #queryGroup let-player="player" let-group="group" let-root="root">
+        <div class="query-group">
+          <div class="query-group-header">
+            <label class="field inline query-operator-field">
+              <span>Require</span>
+              <select
+                [ngModel]="group.operator"
+                (ngModelChange)="setGroupOperator(player, group.id, $event)"
+              >
+                <option value="AND">AND</option>
+                <option value="OR">OR</option>
+              </select>
+            </label>
+
+            <div class="query-actions">
+              <button type="button" class="secondary compact-button" (click)="addRule(player, group.id)">
+                Add rule
+              </button>
+              <button type="button" class="secondary compact-button" (click)="addGroup(player, group.id)">
+                Add group
+              </button>
+              @if (!root) {
+                <button type="button" class="secondary compact-button danger-button" (click)="removeNode(player, group.id)">
+                  Remove group
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="query-children">
+            @if (group.children.length === 0) {
+              <p class="empty-query">
+                No conditions yet. Add a rule or group.
+              </p>
+            }
+
+            @for (node of group.children; track node.id) {
+              @if (isQueryRule(node)) {
+                <div class="query-rule">
+                  <label class="field inline">
+                    <span>Suit</span>
+                    <select
+                      [ngModel]="node.suit"
+                      (ngModelChange)="setRuleSuit(player, node.id, $event)"
+                    >
+                      @for (suit of suitOptions; track suit.value) {
+                        <option [value]="suit.value">{{ suit.symbol }} {{ suit.label }}</option>
+                      }
+                    </select>
+                  </label>
+
+                  <label class="field inline">
+                    <span>Min</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="13"
+                      [ngModel]="node.min"
+                      (ngModelChange)="setRuleMin(player, node.id, $event)"
+                    />
+                  </label>
+
+                  <label class="field inline">
+                    <span>Max</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="13"
+                      [ngModel]="node.max"
+                      (ngModelChange)="setRuleMax(player, node.id, $event)"
+                    />
+                  </label>
+
+                  <span class="query-rule-summary">
+                    {{ suitOptionLabel(node.suit) }} {{ node.min }}–{{ node.max }}
+                  </span>
+
+                  <button type="button" class="secondary compact-button danger-button" (click)="removeNode(player, node.id)">
+                    Remove
+                  </button>
+                </div>
+              } @else {
+                <ng-container
+                  [ngTemplateOutlet]="queryGroup"
+                  [ngTemplateOutletContext]="{
+                    player: player,
+                    group: node,
+                    root: false
+                  }"
+                />
+              }
+            }
+          </div>
+        </div>
+      </ng-template>
+
       <div class="export-actions">
         <button type="button" class="secondary" (click)="exportWest()" [disabled]="results().length === 0 || isExporting()"
-        matTooltip="Export only the West hand as a PDF">
+                matTooltip="Export only the West hand as a PDF">
           Export West PDF
         </button>
         <button type="button" class="secondary" (click)="exportEast()" [disabled]="results().length === 0 || isExporting()"
-        matTooltip="Export only the East hand as a PDF">
+                matTooltip="Export only the East hand as a PDF">
           Export East PDF
         </button>
         <button type="button" class="secondary" (click)="exportBoth()" [disabled]="results().length === 0 || isExporting()"
-        matTooltip="Export both West and East hands as PDFs. If you specified contracts to evaluate, an extra PDF with the results will be exported.">
+                matTooltip="Export both West and East hands as PDFs. If you specified contracts to evaluate, an extra PDF with the results will be exported.">
           Export Both PDFs
         </button>
       </div>
