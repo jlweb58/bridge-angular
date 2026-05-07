@@ -3,7 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
-import { type SuitChar } from '../models/cards';
+import { type SuitChar } from '../core/models/cards';
 import {
   HandGenerationService,
   type HandGenerationRequest,
@@ -16,9 +16,9 @@ import {
   type ConditionGroup,
   type SuitLengthCondition,
   HandEvaluator
-} from '../services/hand-generation.service';
+} from './hand-generation.service';
 import { GeneratedHandsViewComponent } from './generated-hands-view';
-import {HandGenerationPdfService} from '../services/hand-generation-pdf.service';
+import {HandGenerationPdfService} from './hand-generation-pdf.service';
 import {MatTooltip} from '@angular/material/tooltip';
 
 interface EvaluatorOption {

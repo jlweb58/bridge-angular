@@ -2,8 +2,8 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { catchError, type Observable, throwError } from 'rxjs';
 
-import { environment } from '../../../environments/environment';
-import { type CardCode, type SuitChar } from '../models/cards';
+import { environment } from '../../environments/environment';
+import { type CardCode, type SuitChar } from '../core/models/cards';
 
 export type Player = 'WEST' | 'EAST';
 

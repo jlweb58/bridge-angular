@@ -5,7 +5,7 @@ import {PrivacyPage} from './pages/privacy.page';
 import {AboutPage} from './pages/about.page';
 import {LinksPage} from './pages/links.page';
 import {FaqPage} from './pages/faq.page';
-import {HandGeneration} from './core/components/hand-generation';
+import {HandGeneration} from './hand-generation/hand-generation';
 
 export const routes: Routes = [
   { path: '', component: AnalyzerPage, title: 'Bridge Hand Analysis' },
