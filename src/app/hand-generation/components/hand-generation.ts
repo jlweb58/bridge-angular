@@ -6,16 +6,14 @@ import { finalize } from 'rxjs';
 
 import { type SuitChar } from '../../core/models/cards';
 import {
-  type HandGenerationRequest,
-  type GeneratedHandPair,
-  type ContractScore,
-  type ContractDenomination,
-  type Range,
-  type Player,
   type BackendSuit,
-  type ConditionGroup,
-  type SuitLengthCondition,
-  HandEvaluator
+  type ContractDenomination,
+  type ContractScore,
+  type GeneratedHandPair,
+  type HandEvaluator,
+  type HandGenerationRequest,
+  type Player,
+  type Range,
 } from '../models/hand-generation-api.models';
 import {
   type ConditionOperator,
@@ -23,10 +21,19 @@ import {
   type EvaluatorOption,
   type HandMode,
   type QueryGroup,
-  type QueryRule,
-  type SuitOption,} from '../models/hand-generation-ui.models';
+  type SuitOption,
+} from '../models/hand-generation-ui.models';
 import { HandGenerationPdfService } from '../services/hand-generation-pdf.service';
 import { HandGenerationService } from '../services/hand-generation.service';
+import {
+  createDefaultQueryGroup,
+  createQueryRule,
+  removeQueryNode,
+  setQueryGroupOperator,
+  toConditionGroup,
+  updateQueryGroup,
+  updateQueryRule,
+} from '../utils/hand-generation-query-tree';
 import { GeneratedHandsViewComponent } from './generated-hands-view';
 import { PlayerHandParametersComponent } from './player-hand-parameters/player-hand-parameters';
 
@@ -85,8 +92,8 @@ export class HandGeneration {
     { label: 'Clubs', value: 'CLUBS', symbol: '♣', red: false },
   ];
 
-  protected readonly westQuery = signal<QueryGroup>(this.createDefaultQueryGroup());
-  protected readonly eastQuery = signal<QueryGroup>(this.createDefaultQueryGroup());
+  protected readonly westQuery = signal<QueryGroup>(this.createNextDefaultQueryGroup());
+  protected readonly eastQuery = signal<QueryGroup>(this.createNextDefaultQueryGroup());
 
   protected readonly westSuitRanges = signal<Record<SuitChar, Range>>({
     S: { min: 2, max: 4 },
@@ -185,32 +192,29 @@ export class HandGeneration {
 
 
   protected addRule(player: Player, groupId: number): void {
-    this.updateQuery(player, (root) => this.updateGroup(root, groupId, (group) => ({
+    this.updateQuery(player, (root) => updateQueryGroup(root, groupId, (group) => ({
       ...group,
-      children: [...group.children, this.createQueryRule()],
+      children: [...group.children, this.createNextQueryRule()],
     })));
   }
 
   protected addGroup(player: Player, groupId: number): void {
-    this.updateQuery(player, (root) => this.updateGroup(root, groupId, (group) => ({
+    this.updateQuery(player, (root) => updateQueryGroup(root, groupId, (group) => ({
       ...group,
-      children: [...group.children, this.createDefaultQueryGroup()],
+      children: [...group.children, this.createNextDefaultQueryGroup()],
     })));
   }
 
   protected removeNode(player: Player, nodeId: number): void {
-    this.updateQuery(player, (root) => this.removeQueryNode(root, nodeId));
+    this.updateQuery(player, (root) => removeQueryNode(root, nodeId));
   }
 
   protected setGroupOperator(player: Player, groupId: number, operator: ConditionOperator): void {
-    this.updateQuery(player, (root) => this.updateGroup(root, groupId, (group) => ({
-      ...group,
-      operator,
-    })));
+    this.updateQuery(player, (root) => setQueryGroupOperator(root, groupId, operator));
   }
 
   protected setRuleSuit(player: Player, ruleId: number, suit: BackendSuit): void {
-    this.updateQuery(player, (root) => this.updateRule(root, ruleId, (rule) => ({
+    this.updateQuery(player, (root) => updateQueryRule(root, ruleId, (rule) => ({
       ...rule,
       suit,
     })));
@@ -219,7 +223,7 @@ export class HandGeneration {
   protected setRuleMin(player: Player, ruleId: number, value: string): void {
     const min = Math.max(0, Math.min(13, this.parseNumber(value, 0)));
 
-    this.updateQuery(player, (root) => this.updateRule(root, ruleId, (rule) => ({
+    this.updateQuery(player, (root) => updateQueryRule(root, ruleId, (rule) => ({
       ...rule,
       min,
     })));
@@ -228,7 +232,7 @@ export class HandGeneration {
   protected setRuleMax(player: Player, ruleId: number, value: string): void {
     const max = Math.max(0, Math.min(13, this.parseNumber(value, 13)));
 
-    this.updateQuery(player, (root) => this.updateRule(root, ruleId, (rule) => ({
+    this.updateQuery(player, (root) => updateQueryRule(root, ruleId, (rule) => ({
       ...rule,
       max,
     })));
@@ -339,7 +343,7 @@ export class HandGeneration {
     };
 
     if (mode === 'advanced') {
-      const condition = this.toConditionGroup(query);
+      const condition = toConditionGroup(query);
 
       if (condition.conditions.length > 0) {
         return {
@@ -357,23 +361,12 @@ export class HandGeneration {
     };
   }
 
-  private createDefaultQueryGroup(): QueryGroup {
-    return {
-      id: this.nextQueryNodeId++,
-      kind: 'group',
-      operator: 'AND',
-      children: [],
-    };
+  private createNextDefaultQueryGroup(): QueryGroup {
+    return createDefaultQueryGroup(this.nextQueryNodeId++);
   }
 
-  private createQueryRule(): QueryRule {
-    return {
-      id: this.nextQueryNodeId++,
-      kind: 'rule',
-      suit: 'SPADES',
-      min: 0,
-      max: 13,
-    };
+  private createNextQueryRule(): ReturnType<typeof createQueryRule> {
+    return createQueryRule(this.nextQueryNodeId++);
   }
 
   private updateQuery(player: Player, update: (root: QueryGroup) => QueryGroup): void {
@@ -385,61 +378,8 @@ export class HandGeneration {
     this.eastQuery.update(update);
   }
 
-  private updateGroup(root: QueryGroup, groupId: number, update: (group: QueryGroup) => QueryGroup): QueryGroup {
-    if (root.id === groupId) {
-      return update(root);
-    }
 
-    return {
-      ...root,
-      children: root.children.map((child) =>
-        child.kind === 'group' ? this.updateGroup(child, groupId, update) : child,
-      ),
-    };
-  }
-
-  private updateRule(root: QueryGroup, ruleId: number, update: (rule: QueryRule) => QueryRule): QueryGroup {
-    return {
-      ...root,
-      children: root.children.map((child) => {
-        if (child.kind === 'rule') {
-          return child.id === ruleId ? update(child) : child;
-        }
-
-        return this.updateRule(child, ruleId, update);
-      }),
-    };
-  }
-
-  private removeQueryNode(root: QueryGroup, nodeId: number): QueryGroup {
-    return {
-      ...root,
-      children: root.children
-        .filter((child) => child.id !== nodeId)
-        .map((child) => child.kind === 'group' ? this.removeQueryNode(child, nodeId) : child),
-    };
-  }
-
-  private toConditionGroup(group: QueryGroup): ConditionGroup {
-    return {
-      operator: group.operator,
-      conditions: group.children.map((child): ConditionGroup | SuitLengthCondition => {
-        if (child.kind === 'group') {
-          return this.toConditionGroup(child);
-        }
-
-        return {
-          suit: child.suit,
-          range: {
-            min: Math.min(child.min, child.max),
-            max: Math.max(child.min, child.max),
-          },
-        };
-      }).filter((condition) => {
-        return 'suit' in condition || condition.conditions.length > 0;
-      }),
-    };
-  }
+  
 
   private exportPlayer(player: Player): void {
     this.isExporting.set(true);
