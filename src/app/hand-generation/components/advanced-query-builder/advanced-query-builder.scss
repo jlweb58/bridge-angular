@@ -22,7 +22,7 @@
   padding: 12px;
   border: 1px solid tokens.$primary-border;
   border-radius: tokens.$radius-query-group;
-  background: rgba(25, 118, 210, 0.035);
+  background: tokens.$primary-query-background;
 }
 
 .query-group .query-group {
