@@ -2,6 +2,7 @@ import {
   type BackendSuit,
   type ContractDenomination,
   type HandEvaluator,
+  SuitQualityRank,
 } from './hand-generation-api.models';
 
 export interface EvaluatorOption {
@@ -42,3 +43,10 @@ export interface SuitOption {
   symbol: string;
   red: boolean;
 }
+
+export interface SuitQualityRankOption {
+  label: string;
+  value: SuitQualityRank;
+}
+
+export type SuitQualitySelections = Record<BackendSuit, SuitQualityRank[]>;

@@ -89,4 +89,37 @@
       (ruleMaxChange)="ruleMaxChange.emit($event)"
     />
   }
+
+  <section class="suit-quality-section">
+    <div>
+      <h3>Suit quality</h3>
+      <p>
+        Optional. Select up to 3 rank tiles per suit. Requirements are only sent for suits that have a minimum of 5 cards
+      </p>
+    </div>
+
+    <div class="suit-quality-grid">
+      @for (suit of suitOptions(); track suit.value) {
+        <div class="suit-quality-row">
+          <div class="suit-label" [class.red-suit]="suit.red">
+            {{ suit.symbol }}
+          </div>
+
+          <div class="rank-tiles" [attr.aria-label]="suit.label + ' suit quality'">
+            @for (rank of suitQualityRankOptions(); track rank.value) {
+              <button
+                type="button"
+                class="rank-tile"
+                [class.selected]="isSuitQualityRankSelected(suit.value, rank.value)"
+                [disabled]="isSuitQualityDisabled(suit.value, rank.value)"
+                (click)="suitQualityToggle.emit({ suit: suit.value, rank: rank.value })"
+              >
+                {{ rank.label }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </section>
 </div>

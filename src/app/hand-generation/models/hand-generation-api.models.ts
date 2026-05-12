@@ -9,6 +9,12 @@ export interface Range {
 
 export type BackendSuit = 'SPADES' | 'HEARTS' | 'DIAMONDS' | 'CLUBS';
 
+export type SuitQualityRank = 'ACE' | 'KING' | 'QUEEN' | 'JACK' | 'TEN' | 'NINE' | 'EIGHT';
+
+export interface SuitQualityRequirement {
+  minimumRanks: SuitQualityRank[];
+}
+
 export interface SuitLengthCondition {
   suit: BackendSuit;
   range: Range;
@@ -26,6 +32,7 @@ export interface HandConstraint {
     suitLengths: Record<SuitChar, Range>;
   };
   condition?: ConditionGroup;
+  suitQualityRequirements?: Partial<Record<BackendSuit, SuitQualityRequirement>>;
 }
 
 export type HandEvaluator = 'standard' | 'kaplan-rubens' | 'bergen';

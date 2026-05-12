@@ -8,12 +8,15 @@ import {
   type BackendSuit,
   type Player,
   type Range,
+  type SuitQualityRank,
 } from '../../models/hand-generation-api.models';
 import {
   type ConditionOperator,
   type HandMode,
   type QueryGroup,
   type SuitOption,
+  type SuitQualityRankOption,
+  type SuitQualitySelections,
 } from '../../models/hand-generation-ui.models';
 import { AdvancedQueryBuilderComponent } from '../advanced-query-builder/advanced-query-builder';
 
@@ -34,6 +37,8 @@ export class PlayerHandParametersComponent {
   readonly query = input.required<QueryGroup>();
   readonly suitOptions = input.required<SuitOption[]>();
   readonly suitChars = input.required<SuitChar[]>();
+  readonly suitQualitySelections = input.required<SuitQualitySelections>();
+  readonly suitQualityRankOptions = input.required<SuitQualityRankOption[]>();
 
   readonly modeChange = output<HandMode>();
   readonly minPointsChange = output<string>();
@@ -41,6 +46,8 @@ export class PlayerHandParametersComponent {
 
   readonly suitMinChange = output<{ suit: SuitChar; value: string }>();
   readonly suitMaxChange = output<{ suit: SuitChar; value: string }>();
+
+  readonly suitQualityToggle = output<{ suit: BackendSuit; rank: SuitQualityRank }>();
 
   readonly addRule = output<number>();
   readonly addGroup = output<number>();
@@ -62,4 +69,14 @@ export class PlayerHandParametersComponent {
   protected isRedSuit(suit: SuitChar): boolean {
     return suit === 'H' || suit === 'D';
   }
+
+  protected isSuitQualityRankSelected(suit: BackendSuit, rank: SuitQualityRank): boolean {
+    return this.suitQualitySelections()[suit].includes(rank);
+  }
+
+  protected isSuitQualityDisabled(suit: BackendSuit, rank: SuitQualityRank): boolean {
+    const selectedRanks = this.suitQualitySelections()[suit];
+    return selectedRanks.length >= 3 && !selectedRanks.includes(rank);
+  }
+
 }
