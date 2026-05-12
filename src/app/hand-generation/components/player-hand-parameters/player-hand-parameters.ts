@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatTooltip } from '@angular/material/tooltip';
 
@@ -14,6 +14,7 @@ import {
   type ConditionOperator,
   type HandMode,
   type QueryGroup,
+  type QueryNode,
   type SuitOption,
   type SuitQualityRankOption,
   type SuitQualitySelections,
@@ -39,6 +40,8 @@ export class PlayerHandParametersComponent {
   readonly suitChars = input.required<SuitChar[]>();
   readonly suitQualitySelections = input.required<SuitQualitySelections>();
   readonly suitQualityRankOptions = input.required<SuitQualityRankOption[]>();
+
+  protected readonly suitQualityExpanded = signal(false);
 
   readonly modeChange = output<HandMode>();
   readonly minPointsChange = output<string>();
@@ -79,4 +82,36 @@ export class PlayerHandParametersComponent {
     return selectedRanks.length >= 3 && !selectedRanks.includes(rank);
   }
 
+  protected toggleSuitQualityExpanded(): void {
+    this.suitQualityExpanded.update((expanded) => !expanded);
+  }
+
+  protected hasSuitQualityAvailableSuits(): boolean {
+    return this.suitOptions().some((suit) => this.isSuitQualityAvailable(suit.value));
+  }
+
+  protected isSuitQualityAvailable(suit: BackendSuit): boolean {
+    if (this.mode() === 'basic') {
+      return this.suitRanges()[this.toSuitChar(suit)].min >= 5;
+    }
+
+    return this.queryContainsSuitWithMinimumLength(this.query(), suit);
+  }
+
+  private queryContainsSuitWithMinimumLength(node: QueryNode, suit: BackendSuit): boolean {
+    if (node.kind === 'rule') {
+      return node.suit === suit && node.min >= 5;
+    }
+
+    return node.children.some((child) => this.queryContainsSuitWithMinimumLength(child, suit));
+  }
+
+  private toSuitChar(suit: BackendSuit): SuitChar {
+    switch (suit) {
+      case 'SPADES': return 'S';
+      case 'HEARTS': return 'H';
+      case 'DIAMONDS': return 'D';
+      case 'CLUBS': return 'C';
+    }
+  }
 }

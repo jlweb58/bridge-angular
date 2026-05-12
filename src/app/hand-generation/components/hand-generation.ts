@@ -420,7 +420,7 @@ export class HandGeneration {
         return requirements;
       }
 
-      if (!this.canSuitBeAtLeastFiveCards(mode, suitOption.value, suitRanges, query)) {
+      if (!this.isSuitAtLeastFiveCards(mode, suitOption.value, suitRanges, query)) {
         return requirements;
       }
 
@@ -432,14 +432,14 @@ export class HandGeneration {
     }, {});
   }
 
-  private canSuitBeAtLeastFiveCards(
+  private isSuitAtLeastFiveCards(
     mode: HandMode,
     suit: BackendSuit,
     suitRanges: Record<SuitChar, Range>,
     query: QueryGroup,
   ): boolean {
     if (mode === 'basic') {
-      return suitRanges[this.toSuitChar(suit)].max >= 5;
+      return suitRanges[this.toSuitChar(suit)].min >= 5;
     }
 
     return this.queryContainsSuitWithFiveCardPotential(query, suit);
@@ -447,7 +447,7 @@ export class HandGeneration {
 
   private queryContainsSuitWithFiveCardPotential(node: QueryNode, suit: BackendSuit): boolean {
     if (node.kind === 'rule') {
-      return node.suit === suit && node.max >= 5;
+      return node.suit === suit && node.min >= 5;
     }
 
     return node.children.some((child) => this.queryContainsSuitWithFiveCardPotential(child, suit));

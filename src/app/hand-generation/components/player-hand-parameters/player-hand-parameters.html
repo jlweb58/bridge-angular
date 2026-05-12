@@ -91,35 +91,56 @@
   }
 
   <section class="suit-quality-section">
-    <div>
-      <h3>Suit quality</h3>
-      <p>
-        Optional. Select up to 3 rank tiles per suit. Requirements are only sent for suits that have a minimum of 5 cards
-      </p>
-    </div>
+    <button
+      type="button"
+      class="suit-quality-toggle"
+      (click)="toggleSuitQualityExpanded()"
+      [attr.aria-expanded]="suitQualityExpanded()"
+    >
+      <span>Suit quality</span>
+      <span class="suit-quality-toggle-icon" aria-hidden="true">
+        {{ suitQualityExpanded() ? '−' : '+' }}
+      </span>
+    </button>
 
-    <div class="suit-quality-grid">
-      @for (suit of suitOptions(); track suit.value) {
-        <div class="suit-quality-row">
-          <div class="suit-label" [class.red-suit]="suit.red">
-            {{ suit.symbol }}
-          </div>
+    @if (suitQualityExpanded()) {
+      <div class="suit-quality-content">
+        <p>
+          Optional. Select up to 3 rank tiles for suits configured with a minimum length of 5 cards.
+        </p>
 
-          <div class="rank-tiles" [attr.aria-label]="suit.label + ' suit quality'">
-            @for (rank of suitQualityRankOptions(); track rank.value) {
-              <button
-                type="button"
-                class="rank-tile"
-                [class.selected]="isSuitQualityRankSelected(suit.value, rank.value)"
-                [disabled]="isSuitQualityDisabled(suit.value, rank.value)"
-                (click)="suitQualityToggle.emit({ suit: suit.value, rank: rank.value })"
-              >
-                {{ rank.label }}
-              </button>
+        @if (hasSuitQualityAvailableSuits()) {
+          <div class="suit-quality-grid">
+            @for (suit of suitOptions(); track suit.value) {
+              @if (isSuitQualityAvailable(suit.value)) {
+                <div class="suit-quality-row">
+                  <div class="suit-label" [class.red-suit]="suit.red">
+                    {{ suit.symbol }}
+                  </div>
+
+                  <div class="rank-tiles" [attr.aria-label]="suit.label + ' suit quality'">
+                    @for (rank of suitQualityRankOptions(); track rank.value) {
+                      <button
+                        type="button"
+                        class="rank-tile"
+                        [class.selected]="isSuitQualityRankSelected(suit.value, rank.value)"
+                        [disabled]="isSuitQualityDisabled(suit.value, rank.value)"
+                        (click)="suitQualityToggle.emit({ suit: suit.value, rank: rank.value })"
+                      >
+                        {{ rank.label }}
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
             }
           </div>
-        </div>
-      }
-    </div>
+        } @else {
+          <p class="suit-quality-empty">
+            Set a suit minimum to 5 or more cards to add suit-quality requirements.
+          </p>
+        }
+      </div>
+    }
   </section>
 </div>
