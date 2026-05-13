@@ -27,4 +27,11 @@
   </h3>
   <h3 class="answer">You can now also specify advanced logical AND/OR conditions for suit lengths, for example, that a hand must have 5-6 spades or hearts, and 5-6 diamonds
   or clubs. If this is combined with contract suggestions generation can be very slow!</h3>
+  <h3 class="question">What's this suit quality thing on hand generation?</h3>
+  <h3 class="answer">If you specify a suit with a minimum length of 5, you can also specify the minimum suit quality needed, e.g. KQx. You can pick up to
+  3 cards; if you pick only K, that would mean any suit with Kxxxx would match. If you pick KQ, then KQxxx would match. If you pick
+  KJT, then KJTxx would match.</h3>
+  <h3 class="question">I see. How does it decide which suit quality is better?</h3>
+  <h3 class="answer">The program assumes the dummy will have xxx, and then ranks the suits by the expected number of tricks that will be taken.
+  For example, AT9xx will take 2.80 expected tricks opposite xxx, but QJTxx will take 2.86 expected tricks, hence QJTxx is better.</h3>
 </section>
