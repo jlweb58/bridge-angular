@@ -1,6 +1,5 @@
 import { type CardCode, type SuitChar } from '../../core/models/cards';
-
-export type Player = 'WEST' | 'EAST';
+import {Player} from '../../core/models/players';
 
 export interface Range {
   min: number;
@@ -51,7 +50,7 @@ export interface ContractScore {
 }
 
 export interface HandGenerationRequest {
-  parameters: Record<Player, HandConstraint>;
+  parameters: Partial<Record<Player, HandConstraint>>;
   numberOfHands: number;
   evaluator: HandEvaluator;
   contractSuggestions?: ContractSuggestion[];
@@ -60,8 +59,7 @@ export interface HandGenerationRequest {
 export interface GeneratedHandPair {
   dealer: Player;
   vulnerability: string;
-  WEST: CardCode[];
-  EAST: CardCode[];
+  hands: Partial<Record<Player, CardCode[]>>;
   contractScores?: ContractScore[];
 }
 

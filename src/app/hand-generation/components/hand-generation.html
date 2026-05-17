@@ -176,6 +176,10 @@
                 matTooltip="Export both West and East hands as PDFs. If you specified contracts to evaluate, an extra PDF with the results will be exported.">
           Export Both PDFs
         </button>
+        <button type="button" class="secondary" (click)="exportPbn()" [disabled]="results().length === 0 || isExporting()"
+                matTooltip="Export both hands as a PBN file, which can be imported into many other bridge applications">
+          Export as PBN
+        </button>
       </div>
       @if (error()) {
         <p class="error">{{ error() }}</p>

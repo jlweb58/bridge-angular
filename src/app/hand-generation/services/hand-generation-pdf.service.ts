@@ -5,8 +5,8 @@ import type { Content, Margins, TDocumentDefinitions } from 'pdfmake/interfaces'
 
 import { type CardCode, type SuitChar } from '../../core/models/cards';
 import type { GeneratedHandPair } from '../models/hand-generation-api.models';
+import {Player} from '../../core/models/players';
 
-type Player = 'WEST' | 'EAST';
 type PdfMakeLike = {
   vfs?: Record<string, string>;
   fonts?: Record<string, { normal: string; bold?: string; italics?: string; bolditalics?: string }>;
@@ -209,7 +209,7 @@ export class HandGenerationPdfService {
           columnGap: 10,
           margin: [0, 0, 0, 4],
         },
-        this.buildHandBlock(pair[player]),
+        this.buildHandBlock(pair.hands[player]),
       ],
     };
   }
@@ -296,8 +296,8 @@ export class HandGenerationPdfService {
   }
 
   private buildOverviewHandSection(pair: GeneratedHandPair, index: number): Content {
-    const westLine: Content = this.buildHandOneLine(pair.WEST);
-    const eastLine: Content = this.buildHandOneLine(pair.EAST);
+    const westLine: Content = this.buildHandOneLine(pair.hands.WEST);
+    const eastLine: Content = this.buildHandOneLine(pair.hands.EAST);
     const contractRows: Content[] = this.buildContractRows(pair);
 
     const stackItems: Content[] = [

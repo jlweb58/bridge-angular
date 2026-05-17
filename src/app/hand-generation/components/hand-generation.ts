@@ -12,7 +12,6 @@ import {
   type GeneratedHandPair,
   type HandEvaluator,
   type HandGenerationRequest,
-  type Player,
   type Range,
   type SuitQualityRank,
   type SuitQualityRequirement,
@@ -40,6 +39,7 @@ import {
 } from '../utils/hand-generation-query-tree';
 import { GeneratedHandsViewComponent } from './generated-hands-view';
 import { PlayerHandParametersComponent } from './player-hand-parameters/player-hand-parameters';
+import {Player} from '../../core/models/players';
 
 @Component({
   selector: 'app-hand-generation',
@@ -338,6 +338,9 @@ export class HandGeneration {
     }
   }
 
+  protected exportPbn(): void {
+    console.log('exporting PBN');
+  }
 
   protected setSuitMin(player: Player, suit: SuitChar, value: string): void {
     const nextValue = this.parseNumber(value, 0);
@@ -488,9 +491,6 @@ export class HandGeneration {
     this.eastQuery.update(update);
   }
 
-
-
-
   private exportPlayer(player: Player): void {
     this.isExporting.set(true);
 
@@ -531,8 +531,8 @@ export class HandGeneration {
       return {
         ...hand,
         dealer: this.swapEastWestPlayer(hand.dealer),
-        WEST: hand.EAST,
-        EAST: hand.WEST,
+        WEST: hand.hands['EAST'],
+        EAST: hand.hands['WEST'],
       };
     });
   }
