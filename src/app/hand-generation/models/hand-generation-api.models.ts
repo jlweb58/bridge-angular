@@ -59,6 +59,7 @@ export interface HandGenerationRequest {
 }
 
 export interface GeneratedHandPair {
+  board: number;
   dealer: Player;
   vulnerability: Vulnerability;
   hands: Partial<Record<Player, CardCode[]>>;

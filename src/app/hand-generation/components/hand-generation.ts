@@ -343,15 +343,21 @@ export class HandGeneration {
   }
 
   protected exportPbn(): void {
-    const firstHand = this.results()[0];
+    const hands = this.results();
 
-    if (!firstHand) return;
+    if (hands.length === 0) return;
 
     this.isExporting.set(true);
     this.error.set(null);
 
     try {
-      const pbn = handPairToPbn(firstHand);
+      const pbn = hands
+        .map((hand, index) => handPairToPbn({
+          ...hand,
+          board: index + 1,
+        }))
+        .join('\n');
+
       const blob = new Blob([pbn], { type: 'application/x-pbn;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
