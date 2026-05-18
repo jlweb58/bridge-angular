@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatTooltip } from '@angular/material/tooltip';
 import { finalize } from 'rxjs';
 
-import { type CardCode, type SuitChar } from '../../core/models/cards';
+import { type SuitChar } from '../../core/models/cards';
 import {
   type BackendSuit,
   type ContractDenomination,
@@ -39,8 +39,9 @@ import {
 } from '../utils/hand-generation-query-tree';
 import { GeneratedHandsViewComponent } from './generated-hands-view';
 import { PlayerHandParametersComponent } from './player-hand-parameters/player-hand-parameters';
-import {Player} from '../../core/models/players';
+import { Player } from '../../core/models/players';
 import { handPairToPbn } from '../../core/models/pbn-builder';
+import { normalizeGeneratedHand } from '../utils/normalize-generated-hand';
 
 @Component({
   selector: 'app-hand-generation',
@@ -177,7 +178,7 @@ export class HandGeneration {
       }))
       .subscribe({
         next: (response) => {
-          const normalizedHands = (response.hands ?? []).map((hand) => this.normalizeGeneratedHand(hand));
+          const normalizedHands = (response.hands ?? []).map(normalizeGeneratedHand);
 
           const hands = this.randomizeHands()
             ? this.randomizeEastWestHands(normalizedHands)
@@ -550,19 +551,6 @@ export class HandGeneration {
     return Math.random().toString(36).slice(2, 7).toUpperCase();
   }
 
-  private normalizeGeneratedHand(hand: GeneratedHandPair & Partial<Record<Player, CardCode[]>>): GeneratedHandPair {
-    return {
-      ...hand,
-      hands: {
-        ...(hand.hands ?? {}),
-        WEST: hand.hands?.WEST ?? hand.WEST,
-        EAST: hand.hands?.EAST ?? hand.EAST,
-        NORTH: hand.hands?.NORTH ?? hand.NORTH,
-        SOUTH: hand.hands?.SOUTH ?? hand.SOUTH,
-      },
-    };
-  }
-
   private randomizeEastWestHands(hands: GeneratedHandPair[]): GeneratedHandPair[] {
     return hands.map((hand) => {
       if (Math.random() >= 0.5) {
@@ -572,8 +560,11 @@ export class HandGeneration {
       return {
         ...hand,
         dealer: this.swapEastWestPlayer(hand.dealer),
-        WEST: hand.hands['EAST'],
-        EAST: hand.hands['WEST'],
+        hands: {
+          ...hand.hands,
+          WEST: hand.hands.EAST,
+          EAST: hand.hands.WEST,
+        },
       };
     });
   }

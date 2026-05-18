@@ -3,9 +3,9 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import type { Content, Margins, TDocumentDefinitions } from 'pdfmake/interfaces';
 
-import { type CardCode, type SuitChar } from '../../core/models/cards';
+import { type CardCode, ranksForSuit, type SuitChar } from '../../core/models/cards';
 import type { GeneratedHandPair } from '../models/hand-generation-api.models';
-import {Player} from '../../core/models/players';
+import { Player } from '../../core/models/players';
 
 type PdfMakeLike = {
   vfs?: Record<string, string>;
@@ -21,7 +21,6 @@ interface PdfExportOptions {
   providedIn: 'root',
 })
 export class HandGenerationPdfService {
-  private readonly rankOrder = 'AKQJT98765432';
   private pdfReady = false;
 
   exportBothPdfs(hands: GeneratedHandPair[], batchId?: string): void {
@@ -229,7 +228,7 @@ export class HandGenerationPdfService {
   }
 
   private suitLine(suit: SuitChar, cards: CardCode[]): Content {
-    const ranks = this.suitRanks(cards, suit) || '—';
+    const ranks = ranksForSuit(cards, suit) || '—';
 
     return {
       columns: [
@@ -277,14 +276,6 @@ export class HandGenerationPdfService {
   <rect fill="${fill}" x="50" y="78" width="20" height="14" rx="2"/>
 </svg>`;
     }
-  }
-
-  private suitRanks(cards: CardCode[], suit: SuitChar): string {
-    return cards
-      .filter((card) => card[0] === suit)
-      .sort((a, b) => this.rankOrder.indexOf(a[1]) - this.rankOrder.indexOf(b[1]))
-      .map((card) => card[1])
-      .join('');
   }
 
   private prettyPlayer(player: Player): string {
@@ -362,16 +353,16 @@ export class HandGenerationPdfService {
     return {
       columns: [
         { width: 12, svg: this.suitSvg('S'), fit: [10, 10], margin: [0, 1, 1, 0] },
-        { width: 'auto', text: this.suitRanks(handCards, 'S') || '—', style: 'cardText', margin: [0, 0, 6, 0] },
+        { width: 'auto', text: ranksForSuit(handCards, 'S') || '—', style: 'cardText', margin: [0, 0, 6, 0] },
 
         { width: 12, svg: this.suitSvg('H'), fit: [10, 10], margin: [0, 1, 1, 0] },
-        { width: 'auto', text: this.suitRanks(handCards, 'H') || '—', style: 'cardText', margin: [0, 0, 6, 0] },
+        { width: 'auto', text: ranksForSuit(handCards, 'H') || '—', style: 'cardText', margin: [0, 0, 6, 0] },
 
         { width: 12, svg: this.suitSvg('D'), fit: [10, 10], margin: [0, 1, 1, 0] },
-        { width: 'auto', text: this.suitRanks(handCards, 'D') || '—', style: 'cardText', margin: [0, 0, 6, 0] },
+        { width: 'auto', text: ranksForSuit(handCards, 'D') || '—', style: 'cardText', margin: [0, 0, 6, 0] },
 
         { width: 12, svg: this.suitSvg('C'), fit: [10, 10], margin: [0, 1, 1, 0] },
-        { width: '*', text: this.suitRanks(handCards, 'C') || '—', style: 'cardText' },
+        { width: '*', text: ranksForSuit(handCards, 'C') || '—', style: 'cardText' },
       ],
       columnGap: 2,
       margin: [0, 0, 0, 2],

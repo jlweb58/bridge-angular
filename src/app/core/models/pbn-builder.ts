@@ -1,6 +1,6 @@
-import {GeneratedHandPair, Vulnerability} from '../../hand-generation/models/hand-generation-api.models';
-import {CardCode, DECK, SuitChar} from './cards';
-import {Player, PLAYER_PBN_CHAR} from './players';
+import { GeneratedHandPair, Vulnerability } from '../../hand-generation/models/hand-generation-api.models';
+import { CardCode, DECK, ranksForSuit, SUIT_CHARS } from './cards';
+import { Player, PLAYER_PBN_CHAR} from './players';
 
 const vulnerabilityMap: Record<Vulnerability, string> = {
   NONE: 'None',
@@ -8,9 +8,6 @@ const vulnerabilityMap: Record<Vulnerability, string> = {
   EW: 'EW',
   BOTH: 'Both',
 };
-
-const rankOrder = 'AKQJT98765432';
-const suitOrder: SuitChar[] = ['S', 'H', 'D', 'C'];
 
 const pbnDealOrder: Player[] = ['NORTH', 'EAST', 'SOUTH', 'WEST'];
 
@@ -88,18 +85,7 @@ function completeHands(hands: Partial<Record<Player, CardCode[]>>): Record<Playe
 }
 
 function handToPbn(cards: CardCode[]): string {
-  return suitOrder
-    .map((suit) => suitToPbn(cards, suit))
+  return SUIT_CHARS
+    .map((suit) => ranksForSuit(cards, suit))
     .join('.');
-}
-
-
-function suitToPbn(cards: CardCode[], suit: SuitChar): string {
-  const ranks = cards
-    .filter((card) => card[0] === suit)
-    .map((card) => card[1])
-    .sort((a, b) => rankOrder.indexOf(a) - rankOrder.indexOf(b))
-    .join('');
-
-  return ranks || '-';
 }

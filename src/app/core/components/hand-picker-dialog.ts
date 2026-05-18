@@ -4,7 +4,13 @@ import { MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDi
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
 
-import { type CardCode, SUIT_CHARS, type SuitChar, RANK_CHARS } from '../models/cards';
+import {
+  type CardCode,
+  compareCardsBySuitThenRankDesc,
+  RANK_CHARS,
+  SUIT_CHARS,
+  type SuitChar,
+} from '../models/cards';
 
 type PickerSeat = 'NORTH' | 'SOUTH';
 
@@ -135,13 +141,6 @@ export class HandPickerDialog {
   }
 
   private sorted(cards: CardCode[]): CardCode[] {
-    const suitOrder = ['S', 'H', 'D', 'C'];
-    const rankOrder = 'AKQJT98765432';
-
-    return [...cards].sort((a, b) => {
-      const suitDiff = suitOrder.indexOf(a[0]) - suitOrder.indexOf(b[0]);
-      if (suitDiff !== 0) return suitDiff;
-      return rankOrder.indexOf(a[1]) - rankOrder.indexOf(b[1]);
-    });
+    return [...cards].sort(compareCardsBySuitThenRankDesc);
   }
 }
