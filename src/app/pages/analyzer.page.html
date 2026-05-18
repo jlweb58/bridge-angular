@@ -39,7 +39,13 @@
 }
 
 @if (dealReady()) {
-  <app-deal-display [deal]="deal()!" [showEastWest]="showEastWest()" />
+  @for (item of dealDisplayItems(); track $index) {
+    <app-deal-display
+      [deal]="item.deal"
+      [showEastWest]="showEastWest()"
+      [displayTitle]="item.title ?? null"
+    />
+  }
 
   <mat-card class="panel-card">
     <mat-card-header>

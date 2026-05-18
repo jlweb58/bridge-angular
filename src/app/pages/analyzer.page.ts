@@ -11,7 +11,7 @@ import { DENOMINATIONS, LEVELS } from '../core/models/contracts';
 
 import type { CardCode } from '../core/models/cards';
 import type { SingleDummyAnalyzeRequest, SingleDummyAnalyzeResponse } from '../core/models/single-dummy';
-import { parsePbnToDeal } from '../core/models/pbn-parser';
+import { parsePbnToDeals } from '../core/models/pbn-parser';
 import {MatButton} from '@angular/material/button';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
@@ -49,7 +49,9 @@ export class AnalyzerPage {
   // --- PBN / Deal ---
   protected readonly pbnFileName = signal<string | null>(null);
   protected readonly pbnRaw = signal<string | null>(null);
-  protected readonly deal = signal<Deal | null>(null);
+  protected readonly deals = signal<Deal[]>([]);
+  protected readonly selectedDealIndex = signal(0);
+  protected readonly deal = computed(() => this.deals()[this.selectedDealIndex()] ?? null);
   protected readonly dealSource = signal<DealSource | null>(null);
 
   // --- Form selections ---
@@ -76,12 +78,18 @@ export class AnalyzerPage {
   protected readonly isManualNsMode = computed(() => this.dealSource() === 'MANUAL_NS');
   protected readonly showEastWest = computed(() => !this.isManualNsMode());
 
-  protected readonly northHand = computed(() => cardsToSuitLines(this.deal()?.hands.NORTH));
-  protected readonly eastHand = computed(() => cardsToSuitLines(this.deal()?.hands.EAST));
-  protected readonly southHand = computed(() => cardsToSuitLines(this.deal()?.hands.SOUTH));
-  protected readonly westHand = computed(() => cardsToSuitLines(this.deal()?.hands.WEST));
-
   protected readonly histogramRows = computed(() => buildHistogramRows(this.response()));
+
+  protected readonly dealDisplayItems = computed(() =>
+    this.deals().map((deal, index) => {
+      const boardLabel = deal.board ? `Board ${deal.board}` : `Deal ${index + 1}`;
+
+      return {
+        deal,
+        title: this.deals().length > 1 ? `${boardLabel} (N/E/S/W)` : undefined,
+      };
+    }),
+  );
 
   protected openHandPickerDialog(): void {
     const ref = this.dialog.open(HandPickerDialog, {
@@ -93,14 +101,16 @@ export class AnalyzerPage {
     ref.afterClosed().subscribe((result?: { north: CardCode[]; south: CardCode[] }) => {
       if (!result) return;
 
-      this.applyDeal(
-        {
-          first: 'NORTH',
-          hands: {
-            NORTH: result.north,
-            SOUTH: result.south,
+      this.applyDeals(
+        [
+          {
+            first: 'NORTH',
+            hands: {
+              NORTH: result.north,
+              SOUTH: result.south,
+            },
           },
-        },
+        ],
         'MANUAL_NS',
       );
 
@@ -124,11 +134,12 @@ export class AnalyzerPage {
         const text = String(reader.result ?? '');
         this.pbnRaw.set(text);
 
-        this.applyDeal(parsePbnToDeal(text), 'PBN');
+        this.applyDeals(parsePbnToDeals(text), 'PBN');
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : 'Failed to parse PBN.';
         this.error.set(msg);
-        this.deal.set(null);
+        this.deals.set([]);
+        this.selectedDealIndex.set(0);
         this.dealSource.set(null);
       }
     };
@@ -219,9 +230,10 @@ export class AnalyzerPage {
     });
   }
 
-  private applyDeal(deal: Deal, source: DealSource): void {
+  private applyDeals(deals: Deal[], source: DealSource): void {
     this.resetAnalysisState();
-    this.deal.set(deal);
+    this.deals.set(deals);
+    this.selectedDealIndex.set(0);
     this.dealSource.set(source);
     this.resetDefaultsForNewDeal();
     this.error.set(null);

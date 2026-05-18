@@ -4,6 +4,9 @@ import type { CardCode } from './cards';
 export type HandsByPlayer = Partial<Record<Player, CardCode[]>>;
 
 export interface Deal {
+  /** The board number from [Board "..."] if present */
+  board?: string;
+
   /** The dealer from [Dealer "..."] if present */
   dealer?: Player;
 

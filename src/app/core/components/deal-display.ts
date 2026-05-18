@@ -18,13 +18,14 @@ type HandValuesByPlayer = Partial<Record<Player, number | null>>;
 export class DealDisplayComponent {
   readonly deal = input.required<Deal>();
   readonly showEastWest = input(true);
+  readonly displayTitle = input<string | null>(null);
 
   private readonly handEvaluationService = inject(HandEvaluationService);
 
   protected readonly handValues = signal<HandValuesByPlayer>({});
 
   protected readonly title = computed(() =>
-    this.showEastWest() ? '2) Deal (N/E/S/W)' : '2) Deal (North / South)',
+    this.displayTitle() ?? (this.showEastWest() ? 'Deal (N/E/S/W)' : 'Deal (North / South)'),
   );
 
   protected readonly northHand = computed(() => cardsToSuitLines(this.deal().hands.NORTH));

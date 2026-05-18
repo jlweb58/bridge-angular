@@ -29,6 +29,52 @@ function parseDealerTagValue(pbnText: string): Player | undefined {
   return PBN_TO_PLAYER[ch];
 }
 
+function parseBoardTagValue(pbnText: string): string | undefined {
+  const m = pbnText.match(/\[Board\s+"([^"]+)"\]/i);
+  return m?.[1]?.trim() || undefined;
+}
+
+function parseDealValueToDeal(dealValue: string, pbnText: string): Deal {
+  const colonIdx = dealValue.indexOf(':');
+  if (colonIdx < 0) throw new Error(`Invalid Deal value "${dealValue}". Expected like N:...`);
+
+  const firstChar = dealValue.slice(0, colonIdx).trim().toUpperCase();
+  if (!['N', 'E', 'S', 'W'].includes(firstChar)) {
+    throw new Error(`Invalid dealer in Deal tag: "${firstChar}". Expected N/E/S/W.`);
+  }
+
+  const first = PBN_TO_PLAYER[firstChar as 'N' | 'E' | 'S' | 'W'];
+  const handsPart = dealValue.slice(colonIdx + 1).trim();
+
+  // 4 hands, starting with `first`, in order clockwise
+  const handTokens = handsPart.split(/\s+/).filter(Boolean);
+  if (handTokens.length !== 4) {
+    throw new Error(
+      `Expected 4 hands after "${firstChar}:" but got ${handTokens.length}.`,
+    );
+  }
+
+  const p1 = first;
+  const p2 = NEXT_PLAYER[p1];
+  const p3 = NEXT_PLAYER[p2];
+  const p4 = NEXT_PLAYER[p3];
+
+  const deal: Deal = {
+    board: parseBoardTagValue(pbnText),
+    dealer: parseDealerTagValue(pbnText),
+    first,
+    hands: {
+      [p1]: parsePbnHandToCardCodes(handTokens[0]),
+      [p2]: parsePbnHandToCardCodes(handTokens[1]),
+      [p3]: parsePbnHandToCardCodes(handTokens[2]),
+      [p4]: parsePbnHandToCardCodes(handTokens[3]),
+    },
+  };
+
+  assert52UniqueCards(deal);
+  return deal;
+}
+
 
 function parsePbnHandToCardCodes(hand: string): CardCode[] {
   // PBN order is S.H.D.C
@@ -68,41 +114,26 @@ function assert52UniqueCards(deal: Deal): void {
 export function parsePbnToDeal(pbnText: string): Deal {
   const dealValue = parseDealTagValue(pbnText);
 
-  const colonIdx = dealValue.indexOf(':');
-  if (colonIdx < 0) throw new Error(`Invalid Deal value "${dealValue}". Expected like N:...`);
+  return parseDealValueToDeal(dealValue, pbnText);
+}
 
-  const firstChar = dealValue.slice(0, colonIdx).trim().toUpperCase();
-  if (!['N', 'E', 'S', 'W'].includes(firstChar)) {
-    throw new Error(`Invalid dealer in Deal tag: "${firstChar}". Expected N/E/S/W.`);
+export function parsePbnToDeals(pbnText: string): Deal[] {
+  const matches = [...pbnText.matchAll(/\[Deal\s+"([^"]+)"\]/gi)];
+
+  if (matches.length === 0) {
+    throw new Error('PBN is missing a [Deal "..."] tag.');
   }
 
-  const first = PBN_TO_PLAYER[firstChar as 'N' | 'E' | 'S' | 'W'];
-  const handsPart = dealValue.slice(colonIdx + 1).trim();
+  return matches.map((match, index) => {
+    const previousMatch = matches[index - 1];
+    const nextMatch = matches[index + 1];
 
-  // 4 hands, starting with `first`, in order clockwise
-  const handTokens = handsPart.split(/\s+/).filter(Boolean);
-  if (handTokens.length !== 4) {
-    throw new Error(
-      `Expected 4 hands after "${firstChar}:" but got ${handTokens.length}.`,
-    );
-  }
+    const blockStart = previousMatch
+      ? previousMatch.index! + previousMatch[0].length
+      : 0;
+    const blockEnd = nextMatch?.index ?? pbnText.length;
+    const blockText = pbnText.slice(blockStart, blockEnd);
 
-  const p1 = first;
-  const p2 = NEXT_PLAYER[p1];
-  const p3 = NEXT_PLAYER[p2];
-  const p4 = NEXT_PLAYER[p3];
-
-  const deal: Deal = {
-    dealer: parseDealerTagValue(pbnText),
-    first,
-    hands: {
-      [p1]: parsePbnHandToCardCodes(handTokens[0]),
-      [p2]: parsePbnHandToCardCodes(handTokens[1]),
-      [p3]: parsePbnHandToCardCodes(handTokens[2]),
-      [p4]: parsePbnHandToCardCodes(handTokens[3]),
-    },
-  };
-
-  assert52UniqueCards(deal);
-  return deal;
+    return parseDealValueToDeal(match[1].trim(), blockText);
+  });
 }
