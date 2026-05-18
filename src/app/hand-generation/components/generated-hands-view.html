@@ -16,7 +16,7 @@
                 <span class="suit-label" [class.red-suit]="suit === 'H' || suit === 'D'">
                   {{ suitSymbol(suit) }}
                 </span>
-                <span class="suit-cards">{{ suitRanks(pair.WEST, suit) }}</span>
+                <span class="suit-cards">{{ suitRanks(pair.hands.WEST, suit) }}</span>
               </div>
             }
           </div>
@@ -31,7 +31,7 @@
                 <span class="suit-label" [class.red-suit]="suit === 'H' || suit === 'D'">
                   {{ suitSymbol(suit) }}
                 </span>
-                <span class="suit-cards">{{ suitRanks(pair.EAST, suit) }}</span>
+                <span class="suit-cards">{{ suitRanks(pair.hands.EAST, suit) }}</span>
               </div>
             }
           </div>

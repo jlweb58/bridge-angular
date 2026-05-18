@@ -38,6 +38,8 @@ export type HandEvaluator = 'standard' | 'kaplan-rubens' | 'bergen';
 
 export type ContractDenomination = 'CLUBS' | 'DIAMONDS' | 'HEARTS' | 'SPADES' | 'NOTRUMP';
 
+export type Vulnerability = 'NONE' | 'NS' | 'EW' | 'BOTH';
+
 export interface ContractSuggestion {
   level: number;
   denomination: ContractDenomination;
@@ -58,7 +60,7 @@ export interface HandGenerationRequest {
 
 export interface GeneratedHandPair {
   dealer: Player;
-  vulnerability: string;
+  vulnerability: Vulnerability;
   hands: Partial<Record<Player, CardCode[]>>;
   contractScores?: ContractScore[];
 }

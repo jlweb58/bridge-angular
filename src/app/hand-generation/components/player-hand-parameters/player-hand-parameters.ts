@@ -6,7 +6,6 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { type SuitChar } from '../../../core/models/cards';
 import {
   type BackendSuit,
-  type Player,
   type Range,
   type SuitQualityRank,
 } from '../../models/hand-generation-api.models';
@@ -20,6 +19,7 @@ import {
   type SuitQualitySelections,
 } from '../../models/hand-generation-ui.models';
 import { AdvancedQueryBuilderComponent } from '../advanced-query-builder/advanced-query-builder';
+import {Player} from '../../../core/models/players';
 
 @Component({
   selector: 'app-player-hand-parameters',

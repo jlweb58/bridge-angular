@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatTooltip } from '@angular/material/tooltip';
 import { finalize } from 'rxjs';
 
-import { type SuitChar } from '../../core/models/cards';
+import { type CardCode, type SuitChar } from '../../core/models/cards';
 import {
   type BackendSuit,
   type ContractDenomination,
@@ -40,6 +40,7 @@ import {
 import { GeneratedHandsViewComponent } from './generated-hands-view';
 import { PlayerHandParametersComponent } from './player-hand-parameters/player-hand-parameters';
 import {Player} from '../../core/models/players';
+import { handPairToPbn } from '../../core/models/pbn-builder';
 
 @Component({
   selector: 'app-hand-generation',
@@ -176,9 +177,11 @@ export class HandGeneration {
       }))
       .subscribe({
         next: (response) => {
+          const normalizedHands = (response.hands ?? []).map((hand) => this.normalizeGeneratedHand(hand));
+
           const hands = this.randomizeHands()
-            ? this.randomizeEastWestHands(response.hands ?? [])
-            : response.hands ?? [];
+            ? this.randomizeEastWestHands(normalizedHands)
+            : normalizedHands;
 
           this.results.set(hands);
           const allScores = hands.flatMap((hand) => hand.contractScores ?? []);
@@ -339,8 +342,29 @@ export class HandGeneration {
   }
 
   protected exportPbn(): void {
-    console.log('exporting PBN');
-  }
+    const firstHand = this.results()[0];
+
+    if (!firstHand) return;
+
+    this.isExporting.set(true);
+    this.error.set(null);
+
+    try {
+      const pbn = handPairToPbn(firstHand);
+      const blob = new Blob([pbn], { type: 'application/x-pbn;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+
+      anchor.href = url;
+      anchor.download = `generated-hand-${this.createBatchId()}.pbn`;
+      anchor.click();
+
+      URL.revokeObjectURL(url);
+    } catch (exportError) {
+      this.error.set(exportError instanceof Error ? exportError.message : 'Failed to export PBN.');
+    } finally {
+      this.isExporting.set(false);
+    }  }
 
   protected setSuitMin(player: Player, suit: SuitChar, value: string): void {
     const nextValue = this.parseNumber(value, 0);
@@ -520,6 +544,23 @@ export class HandGeneration {
   private parseNumber(value: string, fallback: number): number {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  private createBatchId(): string {
+    return Math.random().toString(36).slice(2, 7).toUpperCase();
+  }
+
+  private normalizeGeneratedHand(hand: GeneratedHandPair & Partial<Record<Player, CardCode[]>>): GeneratedHandPair {
+    return {
+      ...hand,
+      hands: {
+        ...(hand.hands ?? {}),
+        WEST: hand.hands?.WEST ?? hand.WEST,
+        EAST: hand.hands?.EAST ?? hand.EAST,
+        NORTH: hand.hands?.NORTH ?? hand.NORTH,
+        SOUTH: hand.hands?.SOUTH ?? hand.SOUTH,
+      },
+    };
   }
 
   private randomizeEastWestHands(hands: GeneratedHandPair[]): GeneratedHandPair[] {

@@ -30,14 +30,14 @@ export class GeneratedHandsViewComponent {
     }
   }
 
-  protected cardsForSuit(cards: CardCode[], suit: SuitChar): CardCode[] {
-    return cards
+  protected cardsForSuit(cards: CardCode[] | undefined, suit: SuitChar): CardCode[] {
+    return (cards ?? [])
       .filter((card) => card[0] === suit)
       .sort((a, b) => this.rankOrder.indexOf(a[1]) - this.rankOrder.indexOf(b[1]));
 
   }
 
-  protected suitRanks(cards: CardCode[], suit: SuitChar): string {
+  protected suitRanks(cards: CardCode[] | undefined, suit: SuitChar): string {
     return this.cardsForSuit(cards, suit)
       .map((card) => card[1])
       .join('') || '—';
