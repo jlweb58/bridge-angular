@@ -44,6 +44,37 @@ mat-form-field {
   flex-wrap: wrap;
 }
 
+.deals-scroll-pane {
+  max-height: 560px;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-top: 12px;
+  scroll-snap-type: y mandatory;
+}
+
+.deal-choice {
+  scroll-snap-align: start;
+  padding: 10px;
+  border: 1px solid var(--mat-sys-outline-variant, #e5e7eb);
+  border-radius: 14px;
+  background: var(--mat-sys-surface, #ffffff);
+}
+
+.deal-choice + .deal-choice {
+  margin-top: 14px;
+}
+
+.deal-choice.selected {
+  border-color: var(--mat-sys-primary, #2563eb);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--mat-sys-primary, #2563eb) 18%, transparent);
+}
+
+.deal-choice-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
 .actions {
   margin-top: 12px;
   display: flex;
@@ -125,6 +156,11 @@ mat-form-field {
   .form {
     grid-template-columns: 1fr;
     gap: 10px;
+  }
+
+  .deals-scroll-pane {
+    max-height: 500px;
+    padding-right: 4px;
   }
 
   .summary-2col {

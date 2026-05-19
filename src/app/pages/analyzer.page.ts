@@ -1,27 +1,27 @@
-import { Component, computed, DOCUMENT, inject, signal } from '@angular/core';
-import { MatTooltip } from '@angular/material/tooltip';
-import { SingleDummyService } from '../core/services/single-dummy.service';
+import {Component, computed, DOCUMENT, inject, signal} from '@angular/core';
+import {MatTooltip} from '@angular/material/tooltip';
+import {SingleDummyService} from '../core/services/single-dummy.service';
 
-import type { Deal } from '../core/models/deal';
-import type { Player } from '../core/models/players';
-import { PLAYERS, PLAYER_LABEL } from '../core/models/players';
+import type {Deal} from '../core/models/deal';
+import type {Player} from '../core/models/players';
+import {PLAYER_LABEL, PLAYERS} from '../core/models/players';
 
-import type { Denomination, Level } from '../core/models/contracts';
-import { DENOMINATIONS, LEVELS } from '../core/models/contracts';
+import type {Denomination, Level} from '../core/models/contracts';
+import {DENOMINATIONS, LEVELS} from '../core/models/contracts';
 
-import type { CardCode } from '../core/models/cards';
-import type { SingleDummyAnalyzeRequest, SingleDummyAnalyzeResponse } from '../core/models/single-dummy';
-import { parsePbnToDeals } from '../core/models/pbn-parser';
+import type {CardCode} from '../core/models/cards';
+import type {SingleDummyAnalyzeRequest, SingleDummyAnalyzeResponse} from '../core/models/single-dummy';
+import {parsePbnToDeals} from '../core/models/pbn-parser';
 import {MatButton} from '@angular/material/button';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {MatFormField, MatHint, MatInput, MatLabel} from '@angular/material/input';
 import {MatOption, MatSelect} from '@angular/material/select';
 import {MatDialog} from '@angular/material/dialog';
+import {MatRadioButton} from '@angular/material/radio';
 import {HandPickerDialog} from '../core/components/hand-picker-dialog';
-import { PercentValuePipe } from '../core/pipes/percent-value.pipe';
-import { ConfidenceIntervalPipe } from '../core/pipes/confidence-interval.pipe';
-import {cardsToSuitLines} from '../core/utils/cards-to-suit-lines';
+import {PercentValuePipe} from '../core/pipes/percent-value.pipe';
+import {ConfidenceIntervalPipe} from '../core/pipes/confidence-interval.pipe';
 import {buildHistogramRows} from '../core/utils/build-histogram-rows';
 import {DealDisplayComponent} from '../core/components/deal-display';
 
@@ -39,7 +39,7 @@ type DealSource = 'PBN' | 'MANUAL_NS';
   standalone: true,
   templateUrl: './analyzer.page.html',
   styleUrl: './analyzer.page.scss',
-  imports: [MatTooltip, MatButton, MatCard, MatCardTitle, MatCardContent, MatProgressSpinner, MatFormField, MatLabel, MatSelect, MatOption, MatHint, MatInput, MatCardHeader, PercentValuePipe, ConfidenceIntervalPipe, DealDisplayComponent],
+  imports: [MatTooltip, MatButton, MatCard, MatCardTitle, MatCardContent, MatProgressSpinner, MatFormField, MatLabel, MatSelect, MatOption, MatHint, MatInput, MatCardHeader, PercentValuePipe, ConfidenceIntervalPipe, DealDisplayComponent, MatRadioButton],
 })
 export class AnalyzerPage {
   private readonly singleDummyService = inject(SingleDummyService);
@@ -52,6 +52,13 @@ export class AnalyzerPage {
   protected readonly deals = signal<Deal[]>([]);
   protected readonly selectedDealIndex = signal(0);
   protected readonly deal = computed(() => this.deals()[this.selectedDealIndex()] ?? null);
+  protected readonly multipleDeals = computed(() => this.deals().length > 1);
+  protected readonly selectedDealLabel = computed(() => {
+    const deal = this.deal();
+    if (!deal) return null;
+
+    return deal.board ? `Board ${deal.board}` : `Deal ${this.selectedDealIndex() + 1}`;
+  });
   protected readonly dealSource = signal<DealSource | null>(null);
 
   // --- Form selections ---
@@ -86,10 +93,20 @@ export class AnalyzerPage {
 
       return {
         deal,
+        index,
         title: this.deals().length > 1 ? `${boardLabel} (N/E/S/W)` : undefined,
       };
     }),
   );
+
+  protected selectDealForAnalysis(index: number): void {
+    if (index === this.selectedDealIndex()) return;
+
+    this.selectedDealIndex.set(index);
+    this.response.set(null);
+    this.request.set(null);
+    this.error.set(null);
+  }
 
   protected openHandPickerDialog(): void {
     const ref = this.dialog.open(HandPickerDialog, {

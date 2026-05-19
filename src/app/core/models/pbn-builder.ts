@@ -11,6 +11,7 @@ const vulnerabilityMap: Record<Vulnerability, string> = {
 
 const pbnDealOrder: Player[] = ['NORTH', 'EAST', 'SOUTH', 'WEST'];
 
+
 export interface PbnDeal {
   board: number;
   dealer: Player;
@@ -55,7 +56,8 @@ function completeHands(hands: Partial<Record<Player, CardCode[]>>): Record<Playe
     throw new Error('Cannot export PBN because the generated hand contains duplicate cards.');
   }
 
-  const remainingCards = DECK.filter((card) => !uniqueKnownCards.has(card));
+  const remainingCards = shuffleDeck(DECK.filter((card) => !uniqueKnownCards.has(card)));
+
   let remainingCardIndex = 0;
 
   for (const player of pbnDealOrder) {
@@ -85,6 +87,14 @@ function completeHands(hands: Partial<Record<Player, CardCode[]>>): Record<Playe
   }
 
   return completedHands;
+}
+
+function shuffleDeck  (array: CardCode[]) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 }
 
 function handToPbn(cards: CardCode[]): string {
