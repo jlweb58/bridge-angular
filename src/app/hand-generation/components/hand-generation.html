@@ -32,18 +32,31 @@
           </select>
         </label>
 
-        <label
-          class="checkbox-field randomize-hands-field"
-          matTooltip="Randomly swaps the West and East hands for each generated hand pair after generation."
-        >
-          <input
-            type="checkbox"
-            [ngModel]="randomizeHands()"
-            (ngModelChange)="randomizeHands.set($event)"
-          />
-          <span>Randomize Hands</span>
-        </label>
+        <div class="generation-checkboxes">
+          <label
+            class="checkbox-field randomize-hands-field"
+            matTooltip="Randomly swaps the West and East hands for each generated hand pair after generation."
+          >
+            <input
+              type="checkbox"
+              [ngModel]="randomizeHands()"
+              (ngModelChange)="randomizeHands.set($event)"
+            />
+            <span>Randomize Hands</span>
+          </label>
 
+          <label
+            class="checkbox-field include-north-field"
+            matTooltip="Add constraints for North, for example an opponent hand with 6 spades and 5-8 points."
+          >
+            <input
+              type="checkbox"
+              [ngModel]="includeNorthHand()"
+              (ngModelChange)="includeNorthHand.set($event)"
+            />
+            <span>Specify North hand</span>
+          </label>
+        </div>
 
         <div class="actions generation-actions">
           <button type="button" class="primary generate-btn" (click)="generate()" [disabled]="isLoading()">
@@ -57,6 +70,20 @@
           </button>
         </div>
       </div>
+
+      @if (includeNorthHand()) {
+        <div class="card north-description-row">
+          <label class="field north-description-field">
+            <span>North description</span>
+            <input
+              type="text"
+              [ngModel]="northShortDescription()"
+              (ngModelChange)="northShortDescription.set($event)"
+              matTooltip="Short North description used on the East/West PDF exports. The overview adds the North condition automatically."
+            />
+          </label>
+        </div>
+      }
 
       <div class="card">
         <h2>Contract suggestions (optional)</h2>
@@ -162,6 +189,36 @@
           (ruleMaxChange)="setRuleMax('EAST', $event.ruleId, $event.value)"
         />
       </div>
+      @if (includeNorthHand()) {
+        <div class="north-constraints-row">
+          <app-player-hand-parameters
+            player="NORTH"
+            title="North"
+            [mode]="northMode()"
+            [minPoints]="northMinPoints()"
+            [maxPoints]="northMaxPoints()"
+            [suitRanges]="northSuitRanges()"
+            [query]="northQuery()"
+            [suitOptions]="suitOptions"
+            [suitChars]="suitChars"
+            [suitQualitySelections]="northSuitQualitySelections()"
+            [suitQualityRankOptions]="suitQualityRankOptions"
+            (modeChange)="setMode('NORTH', $event)"
+            (minPointsChange)="setMinPoints('NORTH', $event)"
+            (maxPointsChange)="setMaxPoints('NORTH', $event)"
+            (suitMinChange)="setSuitMin('NORTH', $event.suit, $event.value)"
+            (suitMaxChange)="setSuitMax('NORTH', $event.suit, $event.value)"
+            (suitQualityToggle)="toggleSuitQualityRank('NORTH', $event.suit, $event.rank)"
+            (addRule)="addRule('NORTH', $event)"
+            (addGroup)="addGroup('NORTH', $event)"
+            (removeNode)="removeNode('NORTH', $event)"
+            (groupOperatorChange)="setGroupOperator('NORTH', $event.groupId, $event.operator)"
+            (ruleSuitChange)="setRuleSuit('NORTH', $event.ruleId, $event.suit)"
+            (ruleMinChange)="setRuleMin('NORTH', $event.ruleId, $event.value)"
+            (ruleMaxChange)="setRuleMax('NORTH', $event.ruleId, $event.value)"
+          />
+        </div>
+      }
 
       <div class="export-actions">
         <button type="button" class="secondary" (click)="exportWest()" [disabled]="results().length === 0 || isExporting()"

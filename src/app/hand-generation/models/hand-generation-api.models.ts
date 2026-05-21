@@ -51,11 +51,17 @@ export interface ContractScore {
   rank: number;
 }
 
+export interface NorthDescription {
+  shortText?: string;
+  overview?: string;
+}
+
 export interface HandGenerationRequest {
   parameters: Partial<Record<Player, HandConstraint>>;
   numberOfHands: number;
   evaluator: HandEvaluator;
   contractSuggestions?: ContractSuggestion[];
+  northDescription?: NorthDescription;
 }
 
 export interface GeneratedHandPair {
@@ -64,8 +70,10 @@ export interface GeneratedHandPair {
   vulnerability: Vulnerability;
   hands: Partial<Record<Player, CardCode[]>>;
   contractScores?: ContractScore[];
+  northDescription?: NorthDescription;
 }
 
 export interface HandGenerationResponse {
   hands: GeneratedHandPair[];
+  northDescription?: NorthDescription;
 }

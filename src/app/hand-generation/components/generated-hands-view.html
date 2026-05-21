@@ -1,4 +1,8 @@
 <div class="generated-hands">
+  @if (northOverviewDescription(); as northDescription) {
+    <p class="north-description">{{ northDescription }}</p>
+  }
+
   @for (pair of hands(); track trackByIndex($index)) {
     <section class="pair-card">
       <header class="pair-header">

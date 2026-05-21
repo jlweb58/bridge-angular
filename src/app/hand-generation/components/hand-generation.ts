@@ -11,7 +11,7 @@ import {
   type ContractScore,
   type GeneratedHandPair,
   type HandEvaluator,
-  type HandGenerationRequest,
+  type HandGenerationRequest, NorthDescription,
   type Range,
   type SuitQualityRank,
   type SuitQualityRequirement,
@@ -87,9 +87,14 @@ export class HandGeneration {
   protected readonly westMaxPoints = signal(17);
   protected readonly eastMinPoints = signal(8);
   protected readonly eastMaxPoints = signal(12);
+  protected readonly northMinPoints = signal(5);
+  protected readonly northMaxPoints = signal(8);
 
   protected readonly westMode = signal<HandMode>('basic');
   protected readonly eastMode = signal<HandMode>('basic');
+  protected readonly northMode = signal<HandMode>('basic');
+  protected readonly includeNorthHand = signal(false);
+  protected readonly northShortDescription = signal('');
 
   protected readonly suitOptions: SuitOption[] = [
     { label: 'Spades', value: 'SPADES', symbol: '♠', red: false },
@@ -110,9 +115,11 @@ export class HandGeneration {
 
   protected readonly westQuery = signal<QueryGroup>(this.createNextDefaultQueryGroup());
   protected readonly eastQuery = signal<QueryGroup>(this.createNextDefaultQueryGroup());
+  protected readonly northQuery = signal<QueryGroup>(this.createNextDefaultQueryGroup());
 
   protected readonly westSuitQualitySelections = signal<SuitQualitySelections>(this.createEmptySuitQualitySelections());
   protected readonly eastSuitQualitySelections = signal<SuitQualitySelections>(this.createEmptySuitQualitySelections());
+  protected readonly northSuitQualitySelections = signal<SuitQualitySelections>(this.createEmptySuitQualitySelections());
 
   protected readonly westSuitRanges = signal<Record<SuitChar, Range>>({
     S: { min: 2, max: 4 },
@@ -126,6 +133,13 @@ export class HandGeneration {
     H: { min: 4, max: 4 },
     D: { min: 1, max: 5 },
     C: { min: 1, max: 5 },
+  });
+
+  protected readonly northSuitRanges = signal<Record<SuitChar, Range>>({
+    S: { min: 6, max: 6 },
+    H: { min: 0, max: 3 },
+    D: { min: 0, max: 4 },
+    C: { min: 0, max: 4 },
   });
 
   protected readonly suitChars: SuitChar[] = ['S', 'H', 'D', 'C'];
@@ -154,6 +168,19 @@ export class HandGeneration {
       evaluator: this.selectedEvaluator(),
     };
 
+    if (this.includeNorthHand()) {
+      request.parameters.NORTH = this.buildPlayerConstraint(
+        this.northMinPoints(),
+        this.northMaxPoints(),
+        this.northMode(),
+        this.northSuitRanges(),
+        this.northQuery(),
+        this.northSuitQualitySelections(),
+      );
+
+      request.northDescription = this.buildNorthDescription();
+    }
+
     const normalizedContracts = this.contractSuggestions()
       .filter((row) => row.added && row.level !== null && row.denomination !== '')
       .map((row) => ({
@@ -179,10 +206,18 @@ export class HandGeneration {
       .subscribe({
         next: (response) => {
           const normalizedHands = (response.hands ?? []).map(normalizeGeneratedHand);
+          const responseNorthDescription = response.northDescription;
+
+          const handsWithNorthDescription = responseNorthDescription
+            ? normalizedHands.map((hand) => ({
+              ...hand,
+              northDescription: hand.northDescription ?? responseNorthDescription,
+            }))
+            : normalizedHands;
 
           const hands = this.randomizeHands()
-            ? this.randomizeEastWestHands(normalizedHands)
-            : normalizedHands;
+            ? this.randomizeEastWestHands(handsWithNorthDescription)
+            : handsWithNorthDescription;
 
           this.results.set(hands);
           const allScores = hands.flatMap((hand) => hand.contractScores ?? []);
@@ -196,21 +231,24 @@ export class HandGeneration {
 
   protected setMode(player: Player, mode: HandMode): void {
     if (player === 'WEST') this.westMode.set(mode);
-    else this.eastMode.set(mode);
+    else if (player === 'EAST') this.eastMode.set(mode);
+    else if (player === 'NORTH') this.northMode.set(mode);
   }
 
   protected setMinPoints(player: Player, value: string): void {
     const points = this.parseNumber(value, 0);
 
     if (player === 'WEST') this.westMinPoints.set(points);
-    else this.eastMinPoints.set(points);
+    else if (player === 'EAST') this.eastMinPoints.set(points);
+    else if (player === 'NORTH') this.northMinPoints.set(points);
   }
 
   protected setMaxPoints(player: Player, value: string): void {
     const points = this.parseNumber(value, 37);
 
     if (player === 'WEST') this.westMaxPoints.set(points);
-    else this.eastMaxPoints.set(points);
+    else if (player === 'EAST') this.eastMaxPoints.set(points);
+    else if (player === 'NORTH') this.northMaxPoints.set(points);
   }
 
 
@@ -384,7 +422,11 @@ export class HandGeneration {
   }
 
   protected toggleSuitQualityRank(player: Player, suit: BackendSuit, rank: SuitQualityRank): void {
-    const target = player === 'WEST' ? this.westSuitQualitySelections : this.eastSuitQualitySelections;
+    const target = player === 'WEST'
+      ? this.westSuitQualitySelections
+      : player === 'EAST'
+        ? this.eastSuitQualitySelections
+        : this.northSuitQualitySelections;
 
     target.update((selections) => {
       const selectedRanks = selections[suit];
@@ -439,6 +481,68 @@ export class HandGeneration {
       },
       ...(Object.keys(suitQualityRequirements).length > 0 ? { suitQualityRequirements } : {}),
     };
+  }
+
+  private buildNorthDescription(): NorthDescription {
+    const shortText = this.northShortDescription().trim();
+    const condition = this.northMode() === 'basic'
+      ? this.describeBasicNorthCondition()
+      : this.describeAdvancedNorthCondition();
+
+    return {
+      ...(shortText ? { shortText: shortText } : {}),
+      overview: shortText
+        ? `North condition: ${condition}; ${shortText}`
+        : `North condition: ${condition}`,
+    };
+  }
+
+  private describeBasicNorthCondition(): string {
+    const suitParts = this.suitChars
+      .map((suit) => this.describeSuitRange(suit, this.northSuitRanges()[suit]))
+      .filter((description): description is string => description !== null);
+
+    return [
+      `${this.describeRange(this.northMinPoints(), this.northMaxPoints())} HCP`,
+      ...suitParts,
+    ].join(', ');
+  }
+
+  private describeAdvancedNorthCondition(): string {
+    return `${this.describeRange(this.northMinPoints(), this.northMaxPoints())} HCP, advanced suit conditions`;
+  }
+
+  private describeSuitRange(suit: SuitChar, range: Range): string | null {
+    if (range.min === 0 && range.max === 13) {
+      return null;
+    }
+
+    return `${this.describeRange(range.min, range.max)} ${this.suitSymbol(suit)}`;
+  }
+
+  private describeRange(min: number, max: number): string {
+    if (min === max) {
+      return `${min}`;
+    }
+
+    if (max >= 13) {
+      return `${min}+`;
+    }
+
+    return `${min}-${max}`;
+  }
+
+  private suitSymbol(suit: SuitChar): string {
+    switch (suit) {
+      case 'S': return 'spades';
+      case 'H': return 'hearts';
+      case 'D': return 'diamonds';
+      case 'C': return 'clubs';
+    }
+  }
+
+  private lowercaseFirst(value: string): string {
+    return value.length === 0 ? value : value.charAt(0).toLowerCase() + value.slice(1);
   }
 
   private buildSuitQualityRequirements(
@@ -519,7 +623,14 @@ export class HandGeneration {
       return;
     }
 
-    this.eastQuery.update(update);
+    if (player === 'EAST') {
+      this.eastQuery.update(update);
+      return;
+    }
+
+    if (player === 'NORTH') {
+      this.northQuery.update(update);
+    }
   }
 
   private exportPlayer(player: Player): void {
@@ -533,8 +644,11 @@ export class HandGeneration {
   }
 
   private updateSuitRange(player: Player, suit: SuitChar, patch: Partial<Range>): void {
-    const source = player === 'WEST' ? this.westSuitRanges() : this.eastSuitRanges();
-    const current = source[suit];
+    const source = player === 'WEST'
+      ? this.westSuitRanges()
+      : player === 'EAST'
+        ? this.eastSuitRanges()
+        : this.northSuitRanges();    const current = source[suit];
 
     const next: Record<SuitChar, Range> = {
       ...source,
@@ -545,7 +659,8 @@ export class HandGeneration {
     };
 
     if (player === 'WEST') this.westSuitRanges.set(next);
-    else this.eastSuitRanges.set(next);
+    else if (player === 'EAST') this.eastSuitRanges.set(next);
+    else if (player === 'NORTH') this.northSuitRanges.set(next);
   }
 
   private parseNumber(value: string, fallback: number): number {

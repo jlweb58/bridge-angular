@@ -16,6 +16,10 @@ export class GeneratedHandsViewComponent {
 
   protected readonly suitChars = SUIT_CHARS;
 
+  protected northOverviewDescription(): string | null {
+    return this.hands().find((hand) => hand.northDescription?.overview)?.northDescription?.overview ?? null;
+  }
+
   protected trackByIndex(index: number): number {
     return index;
   }

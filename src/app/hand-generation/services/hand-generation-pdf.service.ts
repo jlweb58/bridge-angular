@@ -44,6 +44,7 @@ export class HandGenerationPdfService {
 
     const batchId = options.batchId ?? this.createBatchId();
     const filename = `Overview_${batchId}.pdf`;
+    const northDescription = this.northOverviewDescription(hands);
 
     const overviewBlocks = hands.map((pair, index) => this.buildOverviewHandSection(pair, index));
 
@@ -57,6 +58,9 @@ export class HandGenerationPdfService {
       content: [
         { text: 'Hand overview', style: 'title' },
         { text: `Batch ${batchId}`, style: 'subtitle' },
+        ...(northDescription
+          ? [{ text: northDescription, style: 'batchNorthDescription' } as Content]
+          : []),
         { text: ' ', margin: [0, 0, 0, 4] },
         ...overviewBlocks,
       ] as Content[],
@@ -69,6 +73,12 @@ export class HandGenerationPdfService {
           fontSize: 9,
           color: '#555555',
           margin: [0, 3, 0, 0],
+        },
+        batchNorthDescription: {
+          fontSize: 10,
+          italics: true,
+          color: '#555555',
+          margin: [0, 5, 0, 3],
         },
         pairTitle: {
           fontSize: 12,
@@ -99,6 +109,7 @@ export class HandGenerationPdfService {
 
     const batchId = options.batchId ?? this.createBatchId();
     const filename = `${this.prettyPlayer(player)}_${batchId}.pdf`;
+    const northDescription = this.northShortDescription(hands);
 
     const handBlocks = hands.map((pair, index) => this.buildHandSection(pair, index, player));
     const pages: Content[] = [];
@@ -140,6 +151,9 @@ export class HandGenerationPdfService {
       content: [
         { text: `${this.prettyPlayer(player)} hand practice`, style: 'title' },
         { text: `Batch ${batchId}`, style: 'subtitle' },
+        ...(northDescription
+          ? [{ text: northDescription, style: 'batchNorthDescription' } as Content]
+          : []),
         { text: ' ', margin: [0, 0, 0, 4] },
         ...pages,
       ] as Content[],
@@ -152,6 +166,12 @@ export class HandGenerationPdfService {
           fontSize: 10,
           color: '#555555',
           margin: [0, 3, 0, 0],
+        },
+        batchNorthDescription: {
+          fontSize: 11,
+          italics: true,
+          color: '#555555',
+          margin: [0, 5, 0, 3],
         },
         pairTitle: {
           fontSize: 13,
@@ -182,7 +202,7 @@ export class HandGenerationPdfService {
   }
 
   private buildHandSection(pair: GeneratedHandPair, index: number, player: Player): Content {
-    return {
+       return {
       unbreakable: true,
 
       stack: [
@@ -280,6 +300,14 @@ export class HandGenerationPdfService {
 
   private prettyPlayer(player: Player): string {
     return player.charAt(0) + player.slice(1).toLowerCase();
+  }
+
+  private northShortDescription(hands: GeneratedHandPair[]): string | null {
+    return hands.find((hand) => hand.northDescription?.shortText)?.northDescription?.shortText ?? null;
+  }
+
+  private northOverviewDescription(hands: GeneratedHandPair[]): string | null {
+    return hands.find((hand) => hand.northDescription?.overview)?.northDescription?.overview ?? null;
   }
 
   private createBatchId(): string {

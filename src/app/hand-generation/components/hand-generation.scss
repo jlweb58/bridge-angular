@@ -59,6 +59,19 @@
   gap: 14px;
 }
 
+.north-description-row {
+  max-width: 720px;
+  width: 100%;
+  justify-self: center;
+}
+
+.generation-checkboxes {
+  display: grid;
+  gap: 8px;
+  align-self: center;
+  justify-self: center;
+}
+
 .generation-actions {
   display: flex;
   justify-content: center;
@@ -67,6 +80,10 @@
 .hands-count-field,
 .evaluator-field {
   justify-items: center;
+}
+
+.north-description-field {
+  width: 100%;
 }
 
 .checkbox-field {
@@ -85,6 +102,11 @@
   align-self: center;
   justify-self: center;
 }
+
+.include-north-field {
+  justify-self: start;
+}
+
 
 .evaluator-field select,
 .contract-row select {
@@ -121,6 +143,11 @@
 .player-constraints-grid:has(.advanced-player-card) {
   grid-template-columns: 1fr;
 }
+
+.north-constraints-row {
+  display: grid;
+  grid-template-columns: minmax(0, calc((100% - 16px) / 2));
+  justify-content: center;}
 
 .field {
   @include mixins.field-layout;
@@ -256,11 +283,17 @@
     grid-template-columns: 1fr;
   }
 
+  .north-constraints-row {
+    grid-template-columns: 1fr;
+    justify-content: stretch;
+  }
+
   .player-card-header {
     align-items: stretch;
     flex-direction: column;
   }
 
+  .generation-checkboxes,
   .randomize-hands-field {
     justify-self: start;
   }
