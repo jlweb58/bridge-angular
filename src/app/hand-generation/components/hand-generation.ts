@@ -680,7 +680,7 @@ export class HandGeneration {
 
       return {
         ...hand,
-        dealer: this.swapEastWestPlayer(hand.dealer),
+        dealer: hand.dealer,
         hands: {
           ...hand.hands,
           WEST: hand.hands.EAST,
