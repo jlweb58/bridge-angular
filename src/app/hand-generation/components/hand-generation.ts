@@ -70,6 +70,7 @@ export class HandGeneration {
   private generationStartedAtMs: number | null = null;
   private generationTimerId: ReturnType<typeof setInterval> | null = null;
   private nextQueryNodeId = 1;
+  private exportBatchId = this.createBatchId();
 
   protected readonly numberOfHands = signal(10);
   protected readonly evaluatorOptions: EvaluatorOption[] = [
@@ -195,6 +196,7 @@ export class HandGeneration {
 
     this.isLoading.set(true);
     this.error.set(null);
+    this.exportBatchId = this.createBatchId();
     this.startGenerationTimer();
 
     this.handGenerationService
@@ -374,7 +376,7 @@ export class HandGeneration {
     this.isExporting.set(true);
 
     try {
-      this.handGenerationPdfService.exportBothPdfs(this.results());
+      this.handGenerationPdfService.exportBothPdfs(this.results(), this.exportBatchId);
     } finally {
       this.isExporting.set(false);
     }
@@ -401,7 +403,7 @@ export class HandGeneration {
       const anchor = document.createElement('a');
 
       anchor.href = url;
-      anchor.download = `generated-hand-${this.createBatchId()}.pbn`;
+      anchor.download = `generated-hand-${this.exportBatchId}.pbn`;
       anchor.click();
 
       URL.revokeObjectURL(url);
@@ -541,10 +543,6 @@ export class HandGeneration {
     }
   }
 
-  private lowercaseFirst(value: string): string {
-    return value.length === 0 ? value : value.charAt(0).toLowerCase() + value.slice(1);
-  }
-
   private buildSuitQualityRequirements(
     mode: HandMode,
     suitRanges: Record<SuitChar, Range>,
@@ -637,7 +635,9 @@ export class HandGeneration {
     this.isExporting.set(true);
 
     try {
-      this.handGenerationPdfService.exportPlayerPdf(player, this.results());
+      this.handGenerationPdfService.exportPlayerPdf(player, this.results(), {
+        batchId: this.exportBatchId,
+      });
     } finally {
       this.isExporting.set(false);
     }

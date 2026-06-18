@@ -14,7 +14,7 @@ type PdfMakeLike = {
 };
 
 interface PdfExportOptions {
-  batchId?: string;
+  batchId: string;
 }
 
 @Injectable({
@@ -23,11 +23,10 @@ interface PdfExportOptions {
 export class HandGenerationPdfService {
   private pdfReady = false;
 
-  exportBothPdfs(hands: GeneratedHandPair[], batchId?: string): void {
-    const resolvedBatchId = batchId ?? this.createBatchId();
-    this.exportPlayerPdf('WEST', hands, { batchId: resolvedBatchId });
-    this.exportPlayerPdf('EAST', hands, { batchId: resolvedBatchId });
-    this.exportOverviewPdf(hands, { batchId: resolvedBatchId });
+  exportBothPdfs(hands: GeneratedHandPair[], batchId: string): void {
+    this.exportPlayerPdf('WEST', hands, { batchId: batchId });
+    this.exportPlayerPdf('EAST', hands, { batchId: batchId });
+    this.exportOverviewPdf(hands, { batchId: batchId });
   }
 
   private ensurePdfMakeReady(): void {
@@ -39,10 +38,10 @@ export class HandGenerationPdfService {
     this.pdfReady = true;
   }
 
-  exportOverviewPdf(hands: GeneratedHandPair[], options: PdfExportOptions = {}): void {
+  exportOverviewPdf(hands: GeneratedHandPair[], options: PdfExportOptions): void {
     this.ensurePdfMakeReady();
 
-    const batchId = options.batchId ?? this.createBatchId();
+    const batchId = options.batchId;
     const filename = `Overview_${batchId}.pdf`;
     const northDescription = this.northOverviewDescription(hands);
 
@@ -104,10 +103,10 @@ export class HandGenerationPdfService {
     pdfMake.createPdf(docDefinition).download(filename);
   }
 
-  exportPlayerPdf(player: Player, hands: GeneratedHandPair[], options: PdfExportOptions = {}): void {
+  exportPlayerPdf(player: Player, hands: GeneratedHandPair[], options: PdfExportOptions): void {
     this.ensurePdfMakeReady();
 
-    const batchId = options.batchId ?? this.createBatchId();
+    const batchId = options.batchId;
     const filename = `${this.prettyPlayer(player)}_${batchId}.pdf`;
     const northDescription = this.northShortDescription(hands);
 
@@ -308,10 +307,6 @@ export class HandGenerationPdfService {
 
   private northOverviewDescription(hands: GeneratedHandPair[]): string | null {
     return hands.find((hand) => hand.northDescription?.overview)?.northDescription?.overview ?? null;
-  }
-
-  private createBatchId(): string {
-    return Math.random().toString(36).slice(2, 7).toUpperCase();
   }
 
   private buildOverviewHandSection(pair: GeneratedHandPair, index: number): Content {
