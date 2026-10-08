@@ -3,6 +3,7 @@ import { MatButton } from '@angular/material/button';
 import { MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
+import { MatCheckbox } from '@angular/material/checkbox';
 
 import {
   type CardCode,
@@ -31,6 +32,7 @@ type PickerSeat = 'NORTH' | 'SOUTH';
     MatCardHeader,
     MatCardTitle,
     MatCardContent,
+    MatCheckbox,
   ],
 })
 export class HandPickerDialog {
@@ -38,6 +40,8 @@ export class HandPickerDialog {
   protected readonly activeSeat = signal<PickerSeat>('NORTH');
   protected readonly north = signal<CardCode[]>([]);
   protected readonly south = signal<CardCode[]>([]);
+  /** North will be described by hand constraints in the analyzer, so only South is picked. */
+  protected readonly northByConstraints = signal(false);
 
   protected readonly suits = SUIT_CHARS;
   protected readonly ranksDesc = [...RANK_CHARS].reverse();
@@ -49,11 +53,13 @@ export class HandPickerDialog {
   }
 
   protected readonly isValid = computed(() =>
-    this.northCount() === 13 && this.southCount() === 13 && this.allSelectedCards().size === 26,
+    this.northByConstraints()
+      ? this.southCount() === 13
+      : this.northCount() === 13 && this.southCount() === 13 && this.allSelectedCards().size === 26,
   );
 
   protected readonly helpText = computed(() => {
-    if (this.northCount() !== 13) return `North needs ${13 - this.northCount()} more card(s).`;
+    if (!this.northByConstraints() && this.northCount() !== 13) return `North needs ${13 - this.northCount()} more card(s).`;
     if (this.southCount() !== 13) return `South needs ${13 - this.southCount()} more card(s).`;
     return 'Selection is legal. Ready to continue.';
   });
@@ -106,6 +112,14 @@ export class HandPickerDialog {
     }
 
     this.addTo(target, card);
+  }
+
+  protected setNorthByConstraints(value: boolean): void {
+    this.northByConstraints.set(value);
+    if (value) {
+      this.north.set([]);
+      this.activeSeat.set('SOUTH');
+    }
   }
 
   protected clearSeat(seat: PickerSeat): void {

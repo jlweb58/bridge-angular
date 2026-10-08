@@ -14,14 +14,13 @@ import {
   type HandGenerationRequest, NorthDescription,
   type Range,
   type SuitQualityRank,
-  type SuitQualityRequirement,
 } from '../models/hand-generation-api.models';
 import {
   type ConditionOperator,
   type ContractInputRow,
   type EvaluatorOption,
   type HandMode,
-  type QueryGroup, QueryNode,
+  type QueryGroup,
   type SuitOption,
   type SuitQualityRankOption,
   type SuitQualitySelections,
@@ -37,6 +36,13 @@ import {
   updateQueryGroup,
   updateQueryRule,
 } from '../utils/hand-generation-query-tree';
+import {
+  buildHandConstraint,
+  createEmptySuitQualitySelections,
+  EVALUATOR_OPTIONS,
+  SUIT_OPTIONS,
+  SUIT_QUALITY_RANK_OPTIONS,
+} from '../utils/hand-constraint-state';
 import { GeneratedHandsViewComponent } from './generated-hands-view';
 import { PlayerHandParametersComponent } from './player-hand-parameters/player-hand-parameters';
 import { Player } from '../../core/models/players';
@@ -73,11 +79,7 @@ export class HandGeneration {
   private exportBatchId = this.createBatchId();
 
   protected readonly numberOfHands = signal(10);
-  protected readonly evaluatorOptions: EvaluatorOption[] = [
-    { label: 'Standard', value: 'standard' },
-    { label: 'Kaplan-Rubens', value: 'kaplan-rubens' },
-    { label: 'Bergen', value: 'bergen' },
-  ];
+  protected readonly evaluatorOptions: EvaluatorOption[] = EVALUATOR_OPTIONS;
   protected readonly selectedEvaluator = signal<HandEvaluator>('standard');
   protected readonly randomizeHands = signal(false);
 
@@ -97,30 +99,17 @@ export class HandGeneration {
   protected readonly includeNorthHand = signal(false);
   protected readonly northShortDescription = signal('');
 
-  protected readonly suitOptions: SuitOption[] = [
-    { label: 'Spades', value: 'SPADES', symbol: '♠', red: false },
-    { label: 'Hearts', value: 'HEARTS', symbol: '♥', red: true },
-    { label: 'Diamonds', value: 'DIAMONDS', symbol: '♦', red: true },
-    { label: 'Clubs', value: 'CLUBS', symbol: '♣', red: false },
-  ];
+  protected readonly suitOptions: SuitOption[] = SUIT_OPTIONS;
 
-  protected readonly suitQualityRankOptions: SuitQualityRankOption[] = [
-    { label: 'A', value: 'ACE' },
-    { label: 'K', value: 'KING' },
-    { label: 'Q', value: 'QUEEN' },
-    { label: 'J', value: 'JACK' },
-    { label: 'T', value: 'TEN' },
-    { label: '9', value: 'NINE' },
-    { label: '8', value: 'EIGHT' },
-  ];
+  protected readonly suitQualityRankOptions: SuitQualityRankOption[] = SUIT_QUALITY_RANK_OPTIONS;
 
   protected readonly westQuery = signal<QueryGroup>(this.createNextDefaultQueryGroup());
   protected readonly eastQuery = signal<QueryGroup>(this.createNextDefaultQueryGroup());
   protected readonly northQuery = signal<QueryGroup>(this.createNextDefaultQueryGroup());
 
-  protected readonly westSuitQualitySelections = signal<SuitQualitySelections>(this.createEmptySuitQualitySelections());
-  protected readonly eastSuitQualitySelections = signal<SuitQualitySelections>(this.createEmptySuitQualitySelections());
-  protected readonly northSuitQualitySelections = signal<SuitQualitySelections>(this.createEmptySuitQualitySelections());
+  protected readonly westSuitQualitySelections = signal<SuitQualitySelections>(createEmptySuitQualitySelections());
+  protected readonly eastSuitQualitySelections = signal<SuitQualitySelections>(createEmptySuitQualitySelections());
+  protected readonly northSuitQualitySelections = signal<SuitQualitySelections>(createEmptySuitQualitySelections());
 
   protected readonly westSuitRanges = signal<Record<SuitChar, Range>>({
     S: { min: 2, max: 4 },
@@ -453,36 +442,7 @@ export class HandGeneration {
     query: QueryGroup,
     suitQualitySelections: SuitQualitySelections,
   ): HandGenerationRequest['parameters'][Player] {
-    const base = {
-      minPoints,
-      maxPoints,
-    };
-    const suitQualityRequirements = this.buildSuitQualityRequirements(
-      mode,
-      suitRanges,
-      query,
-      suitQualitySelections,
-    );
-
-    if (mode === 'advanced') {
-      const condition = toConditionGroup(query);
-
-      if (condition.conditions.length > 0) {
-        return {
-          ...base,
-          condition,
-          ...(Object.keys(suitQualityRequirements).length > 0 ? { suitQualityRequirements } : {}),
-        };
-      }
-    }
-
-    return {
-      ...base,
-      handDistribution: {
-        suitLengths: suitRanges,
-      },
-      ...(Object.keys(suitQualityRequirements).length > 0 ? { suitQualityRequirements } : {}),
-    };
+    return buildHandConstraint({ minPoints, maxPoints, mode, suitRanges, query, suitQualitySelections });
   }
 
   private buildNorthDescription(): NorthDescription {
@@ -541,70 +501,6 @@ export class HandGeneration {
       case 'D': return 'diamonds';
       case 'C': return 'clubs';
     }
-  }
-
-  private buildSuitQualityRequirements(
-    mode: HandMode,
-    suitRanges: Record<SuitChar, Range>,
-    query: QueryGroup,
-    suitQualitySelections: SuitQualitySelections,
-  ): Partial<Record<BackendSuit, SuitQualityRequirement>> {
-    return this.suitOptions.reduce<Partial<Record<BackendSuit, SuitQualityRequirement>>>((requirements, suitOption) => {
-      const selectedRanks = suitQualitySelections[suitOption.value];
-
-      if (selectedRanks.length === 0) {
-        return requirements;
-      }
-
-      if (!this.isSuitAtLeastFiveCards(mode, suitOption.value, suitRanges, query)) {
-        return requirements;
-      }
-
-      requirements[suitOption.value] = {
-        minimumRanks: selectedRanks.slice(0, 3),
-      };
-
-      return requirements;
-    }, {});
-  }
-
-  private isSuitAtLeastFiveCards(
-    mode: HandMode,
-    suit: BackendSuit,
-    suitRanges: Record<SuitChar, Range>,
-    query: QueryGroup,
-  ): boolean {
-    if (mode === 'basic') {
-      return suitRanges[this.toSuitChar(suit)].min >= 5;
-    }
-
-    return this.queryContainsSuitWithFiveCardPotential(query, suit);
-  }
-
-  private queryContainsSuitWithFiveCardPotential(node: QueryNode, suit: BackendSuit): boolean {
-    if (node.kind === 'rule') {
-      return node.suit === suit && node.min >= 5;
-    }
-
-    return node.children.some((child) => this.queryContainsSuitWithFiveCardPotential(child, suit));
-  }
-
-  private toSuitChar(suit: BackendSuit): SuitChar {
-    switch (suit) {
-      case 'SPADES': return 'S';
-      case 'HEARTS': return 'H';
-      case 'DIAMONDS': return 'D';
-      case 'CLUBS': return 'C';
-    }
-  }
-
-  private createEmptySuitQualitySelections(): SuitQualitySelections {
-    return {
-      SPADES: [],
-      HEARTS: [],
-      DIAMONDS: [],
-      CLUBS: [],
-    };
   }
 
   private createNextDefaultQueryGroup(): QueryGroup {

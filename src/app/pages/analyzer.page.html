@@ -141,6 +141,50 @@
         </mat-form-field>
       </div>
 
+      <section class="constraints" aria-labelledby="constraints-title">
+        <h3 id="constraints-title">Hand constraints (optional)</h3>
+        <p class="muted small">
+          Describe what you know about the other hands, e.g. from the bidding. Constrained hands are dealt
+          randomly so that every sample matches; their cards in the deal (if any) are ignored.
+          The defenders are always dealt randomly, with or without constraints.
+        </p>
+
+        <div class="constraint-toggles">
+          @for (p of constrainablePlayers(); track p) {
+            <mat-checkbox
+              [checked]="isConstrained(p)"
+              [disabled]="isConstraintToggleDisabled(p)"
+              (change)="setConstraintEnabled(p, $event.checked)"
+            >
+              {{ constraintToggleLabel(p) }}
+            </mat-checkbox>
+          }
+        </div>
+
+        @if (hasConstraints()) {
+          <div class="constraint-editors">
+            @for (p of constrainedPlayers(); track p) {
+              <app-hand-constraint-editor
+                [player]="p"
+                [title]="playerLabel[p]"
+                [state]="constraintStates()[p]"
+                (stateChange)="setConstraintState(p, $event)"
+              />
+            }
+          </div>
+
+          <mat-form-field appearance="outline" class="evaluator-field">
+            <mat-label>Point count</mat-label>
+            <mat-select [value]="evaluator()" (selectionChange)="setEvaluatorFromSelect($event.value)">
+              @for (o of evaluatorOptions; track o.value) {
+                <mat-option [value]="o.value">{{ o.label }}</mat-option>
+              }
+            </mat-select>
+            <mat-hint>Used for the HCP ranges of the constraints.</mat-hint>
+          </mat-form-field>
+        }
+      </section>
+
       <div class="actions">
         <button mat-raised-button color="primary" type="button" (click)="runSingleDummy()" [disabled]="loading()">
           @if (loading()) {
@@ -151,7 +195,7 @@
 
         @if (loading()) {
           <div class="muted small loading-hint" role="status" aria-live="polite">
-            Analyzing… this can take 5–30 seconds.
+            Analyzing… this can take 5–30 seconds{{ hasConstraints() ? ', or longer with hand constraints' : '' }}.
           </div>
         }
       </div>
@@ -165,6 +209,13 @@
       <mat-card-title>Results</mat-card-title>
     </mat-card-header>
     <mat-card-content>
+      @if (sampleShortfall(); as shortfall) {
+        <div class="warning" role="status">
+          Only {{ shortfall.found }} of {{ shortfall.requested }} requested deals matching the hand constraints
+          could be generated, so the results are less precise. Loosening the constraints helps.
+        </div>
+      }
+
       <div class="summary summary-2col">
         <div class="summary-item">
           <div class="summary-label" matTooltip="Number of samples used in the analysis">Samples</div>

@@ -3,9 +3,13 @@
 <mat-dialog-content>
   <div class="picker-header">
     <mat-button-toggle-group [value]="activeSeat()" (change)="activeSeat.set($event.value)">
-      <mat-button-toggle value="NORTH">North ({{ northCount() }}/13)</mat-button-toggle>
+      <mat-button-toggle value="NORTH" [disabled]="northByConstraints()">North ({{ northCount() }}/13)</mat-button-toggle>
       <mat-button-toggle value="SOUTH">South ({{ southCount() }}/13)</mat-button-toggle>
     </mat-button-toggle-group>
+
+    <mat-checkbox [checked]="northByConstraints()" (change)="setNorthByConstraints($event.checked)">
+      Describe North with constraints instead
+    </mat-checkbox>
 
     <div class="picker-help">{{ helpText() }}</div>
   </div>

@@ -24,6 +24,15 @@ import {PercentValuePipe} from '../core/pipes/percent-value.pipe';
 import {ConfidenceIntervalPipe} from '../core/pipes/confidence-interval.pipe';
 import {buildHistogramRows} from '../core/utils/build-histogram-rows';
 import {DealDisplayComponent} from '../core/components/deal-display';
+import {MatCheckbox} from '@angular/material/checkbox';
+import {HandConstraintEditorComponent} from '../hand-generation/components/hand-constraint-editor/hand-constraint-editor';
+import {
+  buildHandConstraint,
+  createHandConstraintState,
+  EVALUATOR_OPTIONS,
+  type HandConstraintState,
+} from '../hand-generation/utils/hand-constraint-state';
+import type {HandConstraint, HandEvaluator} from '../hand-generation/models/hand-generation-api.models';
 
 const PARTNER: Record<Player, Player> = {
   NORTH: 'SOUTH',
@@ -39,7 +48,7 @@ type DealSource = 'PBN' | 'MANUAL_NS';
   standalone: true,
   templateUrl: './analyzer.page.html',
   styleUrl: './analyzer.page.scss',
-  imports: [MatTooltip, MatButton, MatCard, MatCardTitle, MatCardContent, MatProgressSpinner, MatFormField, MatLabel, MatSelect, MatOption, MatHint, MatInput, MatCardHeader, PercentValuePipe, ConfidenceIntervalPipe, DealDisplayComponent, MatRadioButton],
+  imports: [MatTooltip, MatButton, MatCard, MatCardTitle, MatCardContent, MatProgressSpinner, MatFormField, MatLabel, MatSelect, MatOption, MatHint, MatInput, MatCardHeader, PercentValuePipe, ConfidenceIntervalPipe, DealDisplayComponent, MatRadioButton, MatCheckbox, HandConstraintEditorComponent],
 })
 export class AnalyzerPage {
   private readonly singleDummyService = inject(SingleDummyService);
@@ -74,6 +83,23 @@ export class AnalyzerPage {
   protected readonly dummyLabel = computed(() => this.playerLabel[this.dummyPlayer()]);
   protected readonly samples = signal<number>(500);
 
+  // --- Optional hand constraints (dummy and defenders) ---
+  protected readonly evaluatorOptions = EVALUATOR_OPTIONS;
+  protected readonly evaluator = signal<HandEvaluator>('standard');
+  protected readonly constraintEnabled = signal<Record<Player, boolean>>(createConstraintFlags());
+  protected readonly constraintStates = signal<Record<Player, HandConstraintState>>(createConstraintStates());
+
+  protected readonly defenders = computed<Player[]>(() =>
+    PLAYERS.filter((p) => p !== this.declarer() && p !== this.dummyPlayer()),
+  );
+  /** Seats that may be constrained: the dummy first, then the defenders. */
+  protected readonly constrainablePlayers = computed<Player[]>(() => [this.dummyPlayer(), ...this.defenders()]);
+  protected readonly dummyHasCards = computed(() => hasFullHand(this.deal(), this.dummyPlayer()));
+  protected readonly constrainedPlayers = computed<Player[]>(() =>
+    this.constrainablePlayers().filter((p) => this.isConstrained(p)),
+  );
+  protected readonly hasConstraints = computed(() => this.constrainedPlayers().length > 0);
+
   // --- Request/Response state ---
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -82,6 +108,11 @@ export class AnalyzerPage {
   protected readonly response = signal<SingleDummyAnalyzeResponse | null>(null);
 
   protected readonly dealReady = computed(() => !!this.deal());
+  protected readonly sampleShortfall = computed(() => {
+    const req = this.request();
+    const resp = this.response();
+    return req && resp && resp.samples < req.samples ? { requested: req.samples, found: resp.samples } : null;
+  });
   protected readonly isManualNsMode = computed(() => this.dealSource() === 'MANUAL_NS');
   protected readonly showEastWest = computed(() => !this.isManualNsMode());
 
@@ -164,6 +195,42 @@ export class AnalyzerPage {
     reader.readAsText(file);
   }
 
+  /** The dummy is always constrained when its cards are unknown. */
+  protected isConstrained(player: Player): boolean {
+    if (player === this.declarer()) return false;
+    if (player === this.dummyPlayer() && !this.dummyHasCards()) return true;
+    return this.constraintEnabled()[player];
+  }
+
+  protected isConstraintToggleDisabled(player: Player): boolean {
+    return player === this.dummyPlayer() && !this.dummyHasCards();
+  }
+
+  protected constraintToggleLabel(player: Player): string {
+    const name = this.playerLabel[player];
+    if (player !== this.dummyPlayer()) return `Constrain ${name}`;
+    return this.dummyHasCards()
+      ? `Constrain ${name} (dummy) instead of using its cards`
+      : `Constrain ${name} (dummy) — no cards were picked`;
+  }
+
+  protected setConstraintEnabled(player: Player, enabled: boolean): void {
+    this.constraintEnabled.update((flags) => ({ ...flags, [player]: enabled }));
+  }
+
+  protected setConstraintState(player: Player, state: HandConstraintState): void {
+    this.constraintStates.update((states) => ({ ...states, [player]: state }));
+  }
+
+  protected setEvaluatorFromSelect(value: string): void {
+    const option = EVALUATOR_OPTIONS.find((o) => o.value === value);
+    if (!option) {
+      this.error.set(`Invalid evaluator "${value}".`);
+      return;
+    }
+    this.evaluator.set(option.value);
+  }
+
   protected setDeclarerFromSelect(value: string): void {
     if (!PLAYERS.includes(value as Player)) {
       this.error.set(`Invalid declarer "${value}". Must be one of ${PLAYERS.join(', ')}.`);
@@ -228,6 +295,11 @@ export class AnalyzerPage {
       return;
     }
 
+    if (!hasFullHand(deal, this.declarer())) {
+      this.error.set(`Declarer ${this.playerLabel[this.declarer()]} has no cards. Choose a declarer whose hand is known.`);
+      return;
+    }
+
     const request = this.buildAnalyzeRequest(deal, samples);
 
     this.request.set(request);
@@ -261,29 +333,47 @@ export class AnalyzerPage {
     this.denomination.set('SPADES');
     this.level.set(4);
     this.samples.set(500);
+    this.constraintEnabled.set(createConstraintFlags());
   }
 
   private buildAnalyzeRequest(deal: Deal, samples: number): SingleDummyAnalyzeRequest {
-    return {
+    const dummy = this.dummyPlayer();
+    const constrained = this.constrainedPlayers();
+
+    const hands = this.isManualNsMode()
+      ? {
+        NORTH: deal.hands.NORTH,
+        SOUTH: deal.hands.SOUTH,
+      }
+      : {
+        NORTH: deal.hands.NORTH,
+        EAST: deal.hands.EAST,
+        SOUTH: deal.hands.SOUTH,
+        WEST: deal.hands.WEST,
+      };
+
+    const request: SingleDummyAnalyzeRequest = {
       declarer: this.declarer(),
-      dummy: this.dummyPlayer(),
+      dummy,
       contract: {
         level: this.level(),
         denomination: this.denomination(),
       },
-      hands: this.isManualNsMode()
-        ? {
-          NORTH: deal.hands.NORTH,
-          SOUTH: deal.hands.SOUTH,
-        }
-        : {
-          NORTH: deal.hands.NORTH,
-          EAST: deal.hands.EAST,
-          SOUTH: deal.hands.SOUTH,
-          WEST: deal.hands.WEST,
-        },
+      // a constrained dummy must not also be sent as known cards
+      hands: constrained.includes(dummy) ? { ...hands, [dummy]: undefined } : hands,
       samples,
     };
+
+    if (constrained.length > 0) {
+      const constraints: Partial<Record<Player, HandConstraint>> = {};
+      for (const player of constrained) {
+        constraints[player] = buildHandConstraint(this.constraintStates()[player]);
+      }
+      request.constraints = constraints;
+      request.evaluator = this.evaluator();
+    }
+
+    return request;
   }
 
   private resetAnalysisState(): void {
@@ -298,4 +388,21 @@ export class AnalyzerPage {
     el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+}
+
+function hasFullHand(deal: Deal | null, player: Player): boolean {
+  return (deal?.hands[player]?.length ?? 0) === 13;
+}
+
+function createConstraintFlags(): Record<Player, boolean> {
+  return { NORTH: false, EAST: false, SOUTH: false, WEST: false };
+}
+
+function createConstraintStates(): Record<Player, HandConstraintState> {
+  return {
+    NORTH: createHandConstraintState(),
+    EAST: createHandConstraintState(),
+    SOUTH: createHandConstraintState(),
+    WEST: createHandConstraintState(),
+  };
 }
